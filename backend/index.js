@@ -10,7 +10,7 @@ app.get("/", (req, res) => {
     res.send("Hello, sky");
 });
 
-// PORT setup and server start
+// PORT setup and server setup
 const PORT = process.env.PORT;
 if (!PORT) {
     console.error("Error: PORT environment variable is not defined.");
