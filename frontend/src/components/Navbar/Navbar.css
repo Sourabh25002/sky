@@ -1,0 +1,123 @@
+/* Navbar container */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #000; /* pure black background */
+  padding: 1rem 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #fff; /* white text */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  position: relative;
+  z-index: 1000;
+}
+
+/* Company name on the left */
+.nav-left .company-name {
+  font-weight: bold;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  color: #fff; /* white for company name */
+  cursor: default;
+}
+
+/* Links container */
+.nav-right {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+/* Individual nav links */
+.nav-link {
+  color: #ccc; /* light gray */
+  text-decoration: none;
+  font-size: 1rem;
+  position: relative;
+  padding: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #fff; /* white on hover */
+}
+
+/* Dropdown container */
+.dropdown {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  color: #ccc; /* light gray */
+}
+
+.dropdown:hover {
+  color: #fff; /* white on hover */
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 130%;
+  left: 0;
+  background-color: #111; /* very dark gray */
+  padding: 0.5rem 0;
+  border-radius: 6px;
+  min-width: 140px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1001;
+}
+
+/* Show dropdown */
+.dropdown-menu.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Dropdown menu links */
+.dropdown-menu li {
+  list-style: none;
+}
+
+.dropdown-menu li a {
+  display: block;
+  padding: 0.5rem 1.5rem;
+  color: #ddd; /* lighter gray */
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-menu li a:hover {
+  background-color: #333; /* darker gray background on hover */
+  color: #fff; /* white text */
+}
+
+/* Login button */
+.login-button {
+  background-color: #ffffff; /* medium dark gray */
+  padding: 0.45rem 1.1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  color: #000000 !important; /* white text */
+}
+
+.login-button:hover {
+  background-color: #666; /* lighter gray on hover */
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .nav-right {
+    gap: 0.8rem;
+    font-size: 0.9rem;
+  }
+  .dropdown-menu {
+    min-width: 120px;
+  }
+  .nav-left .company-name {
+    font-size: 1.4rem;
+  }
+}
