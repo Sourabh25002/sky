@@ -25,7 +25,7 @@ const Navbar = () => {
                 >
                     Products
                     <ul className={`dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
-                        <li><Link to='/product1'>Ticker</Link></li>
+                        <li><Link to='/ticker'>Ticker</Link></li>
                         <li><Link to="/product2">Product 2</Link></li>
                         <li><Link to="/product3">Product 3</Link></li>
                     </ul>
@@ -42,3 +42,6 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
