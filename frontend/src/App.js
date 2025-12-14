@@ -1,8 +1,11 @@
-import './App.css';
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
-import LandingPage from './pages/LandingPage/LandingPage';
-import Ticker from './pages/Ticker/Ticker';
-import Navbar from './components/Navbar/Navbar';
+import "./App.css";
+import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import LandingPage from "./pages/LandingPage/LandingPage";
+import Ticker from "./pages/Ticker/Ticker";
+import Navbar from "./components/Navbar/Navbar";
+import Login from "./pages/AuthenticationPage/LoginPage";
+import Signup from "./pages/AuthenticationPage/SignupPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Layout component includes Navbar and renders child routes via Outlet
 function Layout() {
@@ -16,17 +19,30 @@ function Layout() {
 
 const router = createBrowserRouter([
   {
-    element: <Layout />, // Wrap all routes in Layout
+    element: <ProtectedRoute />, // 🔐 Session guard
     children: [
       {
-        path: "/",
-        element: <LandingPage />,
-      },
-      {
-        path: "/ticker",
-        element: <Ticker />,
+        element: <Layout />, // Navbar + Outlet
+        children: [
+          {
+            path: "/",
+            element: <LandingPage />,
+          },
+          {
+            path: "/ticker",
+            element: <Ticker />,
+          },
+        ],
       },
     ],
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/signup",
+    element: <Signup />,
   },
 ]);
 

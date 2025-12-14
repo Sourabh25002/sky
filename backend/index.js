@@ -1,14 +1,26 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
 // import { createUsersTable, createUser, getUsers } from "./database/users.js";
 
 dotenv.config();
 const app = express();
 
-// testConnection().catch((err) => {
-//   console.error("Error connecting to Neon:", err);
-// });
+app.use(
+  cors({
+    origin: "http://localhost:3000", // React frontend
+    credentials: true, // allow cookies
+  })
+);
+
+// Then other middleware
+app.use(express.json());
+
+// Mount Better Auth
+app.all("/api/auth/{*any}", toNodeHandler(auth));
 
 async function runDatabaseSetup() {
   await checkDatabaseConnection(); // Check Neon connection

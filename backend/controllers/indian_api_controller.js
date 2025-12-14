@@ -1,29 +1,26 @@
-import https from 'https';
+import https from "https";
 
 export const fetch52WeekHighLowData = (req, res) => {
   const options = {
-    method: 'GET',
-    hostname: 'stock.indianapi.in',
-    path: '/fetch_52_week_high_low_data',
-    headers: {
-      'X-Api-Key': 'sk-live-r6SkYXw2CVbtUc7PIYd5waiyW7UDhLmtJtfto5SY'
-    }
+    method: "GET",
+    hostname: "stock.indianapi.in",
+    path: "/fetch_52_week_high_low_data",
   };
 
-  const apiReq = https.request(options, apiRes => {
+  const apiReq = https.request(options, (apiRes) => {
     const chunks = [];
 
-    apiRes.on('data', chunk => {
+    apiRes.on("data", (chunk) => {
       chunks.push(chunk);
     });
 
-    apiRes.on('end', () => {
+    apiRes.on("end", () => {
       const body = Buffer.concat(chunks).toString();
       res.send(body);
     });
   });
 
-  apiReq.on('error', error => {
+  apiReq.on("error", (error) => {
     res.status(500).send({ error: error.message });
   });
 
