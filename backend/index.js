@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
+import { serve } from "inngest/express";
+import { inngest, functions } from "./inngest/index.ts";
 import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
 // import { createUsersTable, createUser, getUsers } from "./database/users.js";
@@ -21,6 +23,9 @@ app.use(express.json());
 
 // Mount Better Auth
 app.all("/api/auth/{*any}", toNodeHandler(auth));
+
+// Set up the "/api/inngest" (recommended) routes with the serve handler
+app.use("/api/inngest", serve({ client: inngest, functions }));
 
 async function runDatabaseSetup() {
   await checkDatabaseConnection(); // Check Neon connection

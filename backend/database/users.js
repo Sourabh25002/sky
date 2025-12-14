@@ -49,3 +49,10 @@ export async function getUsers() {
     client.release();
   }
 }
+
+/*
+model Workflow {
+id string default
+name String
+}
+*/
