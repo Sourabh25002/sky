@@ -13,8 +13,10 @@
   "license": "ISC",
   "dependencies": {
     "@ai-sdk/google": "^2.0.46",
+    "@polar-sh/better-auth": "^1.6.1",
+    "@polar-sh/sdk": "^0.41.5",
     "ai": "^5.0.113",
-    "better-auth": "^1.4.6",
+    "better-auth": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
