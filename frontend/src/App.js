@@ -1,37 +1,41 @@
 import "./App.css";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
-import LandingPage from "./pages/LandingPage/LandingPage";
-import Ticker from "./pages/Ticker/Ticker";
-import Navbar from "./components/Navbar/Navbar";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import DashboardLayout from "./pages/DashboardPage/DashboardPage";
+// import Navbar from "./components/Navbar/Navbar";
 import Login from "./pages/AuthenticationPage/LoginPage";
 import Signup from "./pages/AuthenticationPage/SignupPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import WorkflowPage from "./pages/WorkflowPage/WorkflowPage";
+import CredentialPage from "./pages/CredentialsPage/CredentialPage";
+import ExecutionPage from "./pages/ExecutionsPage/ExecutionPage";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
 
 // Layout component includes Navbar and renders child routes via Outlet
-function Layout() {
-  return (
-    <>
-      <Navbar />
-      <Outlet />
-    </>
-  );
-}
+// function Layout() {
+//   return (
+//     <>
+//       <Navbar />
+//       <Outlet />
+//     </>
+//   );
+// }
 
 const router = createBrowserRouter([
   {
     element: <ProtectedRoute />, // 🔐 Session guard
     children: [
       {
-        element: <Layout />, // Navbar + Outlet
+        path: "/", // parent dashboard layout
+        element: <DashboardLayout />,
         children: [
           {
-            path: "/",
-            element: <LandingPage />,
+            index: true,
+            element: <WorkflowPage />, // default right-side page
           },
-          {
-            path: "/ticker",
-            element: <Ticker />,
-          },
+          { path: "dashboard/workflow", element: <WorkflowPage /> },
+          { path: "dashboard/credential", element: <CredentialPage /> },
+          { path: "dashboard/execution", element: <ExecutionPage /> },
+          { path: "dashboard/profile", element: <ProfilePage /> },
         ],
       },
     ],

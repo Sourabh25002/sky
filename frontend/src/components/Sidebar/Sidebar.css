@@ -1,0 +1,166 @@
+/* Sidebar container */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 220px;
+  min-height: 100vh;
+  padding: 1.5rem 1.25rem;
+  background-color: #f9fafb;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  box-sizing: border-box;
+  border-right: 1px solid #e5e7eb;
+  transition: width 0.2s ease, padding 0.2s ease;
+}
+
+/* Collapsed state */
+.sidebar.sidebar-collapsed {
+  width: 72px; /* only icons visible */
+  padding-inline: 0.75rem;
+}
+
+/* Top group: logo + main nav */
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Logo row (now a button) */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-header:hover {
+  opacity: 0.85;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.6rem;
+  /* background: #111827; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-img {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.logo-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Main nav rows (Workflow, Credentials, Executions) */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Bottom group: Upgrade, Billing, Profile */
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Row item */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.4rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #111827;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+/* Active row: soft white/gray highlight */
+.sidebar-item-active {
+  background-color: #f3f4f6; /* very light gray, close to white */
+  border: 1px solid #e5e7eb; /* subtle border */
+  color: #111827; /* keep text dark */
+}
+
+.sidebar-item-active .sidebar-icon,
+.sidebar-item-active .sidebar-label {
+  color: #111827;
+}
+
+.sidebar-icon {
+  width: 22px;
+  display: flex;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.sidebar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make profile row look a bit special (last one at bottom) */
+.sidebar-footer .sidebar-item:last-child {
+  margin-top: 0.25rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+}
+
+/* Collapse behavior: hide text, center icons */
+.sidebar.sidebar-collapsed .logo-text,
+.sidebar.sidebar-collapsed .sidebar-label {
+  display: none;
+}
+
+.sidebar.sidebar-collapsed .sidebar-item {
+  justify-content: center;
+}
+
+/* Optional: tighten gaps when collapsed */
+.sidebar.sidebar-collapsed .sidebar-top,
+.sidebar.sidebar-collapsed .sidebar-footer {
+  gap: 0.75rem;
+}
+
+/* Optional responsive tweak */
+@media (max-width: 640px) {
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+  }
+
+  .sidebar-top,
+  .sidebar-footer {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
