@@ -12,6 +12,25 @@ const Sidebar = () => {
 
   const toggleSidebar = () => setCollapsed((prev) => !prev);
 
+  const handleUpgrade = async (e) => {
+    e.preventDefault(); // prevent any navigation
+    if (!session?.user) {
+      // optional: redirect to login or show message
+      alert("Please sign in before upgrading.");
+      return;
+    }
+
+    await authClient.checkout({
+      slug: "pro", // must match slug in your backend checkout config
+    });
+    // This will redirect to the Polar checkout page
+  };
+
+  const handleBillingPortal = async (e) => {
+    e.preventDefault();
+    await authClient.customer.portal();
+  };
+
   return (
     <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
       <div className="sidebar-top">
@@ -39,8 +58,17 @@ const Sidebar = () => {
       </div>
 
       <div className="sidebar-footer">
-        <SidebarItem icon="🚀" label="Upgrade to Pro" to="/dashboard/upgrade" />
-        <SidebarItem icon="💳" label="Billing Portal" to="/dashboard/billing" />
+        <SidebarItem
+          icon="🚀"
+          label="Upgrade to Pro"
+          onClick={handleUpgrade}
+          // to="/dashboard/upgrade"
+        />
+        <SidebarItem
+          icon="💳"
+          label="Billing Portal"
+          onClick={handleBillingPortal}
+        />
         <SidebarItem
           icon="👤"
           label={isPending ? "Loading..." : userName}
@@ -51,10 +79,18 @@ const Sidebar = () => {
   );
 };
 
-const SidebarItem = ({ icon, label, to }) => {
+const SidebarItem = ({ icon, label, to, onClick }) => {
+  const handleClick = (e) => {
+    if (onClick) {
+      e.preventDefault(); // stop NavLink navigation
+      onClick(e); // run your handler (checkout / portal)
+    }
+  };
+
   return (
     <NavLink
-      to={to}
+      to={to || "#"}
+      onClick={handleClick}
       className={({ isActive }) =>
         "sidebar-item" + (isActive ? " sidebar-item-active" : "")
       }

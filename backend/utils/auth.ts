@@ -42,7 +42,7 @@ export const auth = betterAuth({
           products: [
             { productId: "17ee1f9d-869a-4684-b86a-64f19443d31c", slug: "pro" },
           ],
-          successUrl: "http://localhost:8000",
+          successUrl: "http://localhost:3000/",
           authenticatedUsersOnly: true,
         }),
         portal(),
