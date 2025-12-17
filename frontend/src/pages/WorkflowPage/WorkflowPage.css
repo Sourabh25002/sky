@@ -1,0 +1,237 @@
+.workflow-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.workflow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.workflow-header h1 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.workflow-new-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.workflow-new-btn:hover {
+  background: #1d4ed8;
+}
+
+.workflow-main {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  height: calc(100% - 48px);
+  min-height: 0;
+}
+
+.workflow-list-panel {
+  border-right: 1px solid #e5e7eb;
+  padding-right: 8px;
+  overflow: hidden;
+}
+
+.workflow-editor-panel {
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.workflow-loading,
+.workflow-empty,
+.workflow-editor-empty {
+  font-size: 0.9rem;
+  color: #6b7280;
+  padding: 8px;
+}
+
+.workflow-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.workflow-list-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  background: #f9fafb;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.workflow-list-item:hover {
+  background: #f3f4f6;
+}
+
+.workflow-list-item-active {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+
+.workflow-list-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workflow-list-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.workflow-list-status {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.workflow-list-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.workflow-list-delete {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.workflow-list-delete:hover {
+  text-decoration: underline;
+}
+
+.workflow-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.workflow-editor-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.workflow-save-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #10b981;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.workflow-save-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.workflow-save-btn:hover:not([disabled]) {
+  background: #059669;
+}
+
+.workflow-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.workflow-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workflow-field-label {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.workflow-input,
+.workflow-select,
+.workflow-textarea,
+.workflow-definition {
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.workflow-input:focus,
+.workflow-select:focus,
+.workflow-textarea:focus,
+.workflow-definition:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+.workflow-textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.workflow-definition {
+  min-height: 180px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  resize: vertical;
+}
+
+.workflow-help-text {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Responsive: stack panels on narrow screens */
+@media (max-width: 900px) {
+  .workflow-main {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .workflow-list-panel {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    padding-right: 0;
+    padding-bottom: 8px;
+  }
+
+  .workflow-editor-panel {
+    padding-left: 0;
+    padding-top: 8px;
+  }
+}
