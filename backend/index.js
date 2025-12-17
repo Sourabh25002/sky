@@ -6,7 +6,8 @@ import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.ts";
 import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
-// import { createUsersTable, createUser, getUsers } from "./database/users.js";
+// import { updateWorkflowsTable } from "./database/schemas.js";
+import workflowsRouter from "./routes/workflow_routes.js";
 
 dotenv.config();
 const app = express();
@@ -29,13 +30,7 @@ app.use("/api/inngest", serve({ client: inngest, functions }));
 
 async function runDatabaseSetup() {
   await checkDatabaseConnection(); // Check Neon connection
-  //   await createUsersTable(); // Ensure table exists
-
-  // Example inserts (change or remove in real app)
-  //   await createUser("john@example.com", "John Doe");
-
-  //   const users = await getUsers();
-  //   console.log("All users:", users);
+  // await updateWorkflowsTable();
 }
 
 runDatabaseSetup().catch((err) => {
@@ -47,7 +42,8 @@ app.get("/", (req, res) => {
   res.send("Hello, sky");
 });
 
-// app.use("/stock", indianApiRoute);
+// Mount workflows API under /api/workflows
+app.use("/api/workflows", workflowsRouter);
 
 // PORT and server setup
 const PORT = process.env.PORT;
