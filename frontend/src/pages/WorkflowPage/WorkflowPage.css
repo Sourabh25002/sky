@@ -235,3 +235,26 @@
     padding-top: 8px;
   }
 }
+
+.workflow-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workflow-open-btn {
+  border: none;
+  background: #10b981;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.workflow-open-btn:hover {
+  background: #059669;
+}

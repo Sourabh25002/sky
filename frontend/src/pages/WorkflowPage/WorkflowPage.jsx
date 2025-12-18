@@ -182,8 +182,20 @@ const WorkflowPage = () => {
                 >
                   <div className="workflow-list-item-top">
                     <span className="workflow-list-name">{wf.name}</span>
-                    <span className="workflow-list-status">{wf.status}</span>
+                    <div className="workflow-list-actions">
+                      <span className="workflow-list-status">{wf.status}</span>
+                      <button
+                        className="workflow-open-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/editor/${wf.id}`; // ✅ React Router path
+                        }}
+                      >
+                        Open Editor →
+                      </button>
+                    </div>
                   </div>
+
                   <div className="workflow-list-meta">
                     <span>
                       Last run:{" "}

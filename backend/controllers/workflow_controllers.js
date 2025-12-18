@@ -41,10 +41,32 @@ export async function getWorkflowById(req, res) {
       `SELECT * FROM workflows WHERE id = $1 AND user_id = $2`,
       [id, userId]
     );
+
     if (!rows[0]) {
       return res.status(404).json({ message: "Workflow not found" });
     }
-    res.json(rows[0]);
+
+    const workflow = rows[0];
+
+    // ✅ NEW: Load nodes + connections for React Flow
+    const nodesResult = await pool.query(
+      `SELECT id, type, position, data FROM nodes WHERE workflow_id = $1`,
+      [id]
+    );
+
+    const connectionsResult = await pool.query(
+      `SELECT id, source_node_id as source, target_node_id as target 
+       FROM connections WHERE workflow_id = $1`,
+      [id]
+    );
+
+    // Format for React Flow
+    workflow.definition = {
+      nodes: nodesResult.rows,
+      edges: connectionsResult.rows,
+    };
+
+    res.json(workflow);
   } catch (err) {
     console.error("Error fetching workflow:", err);
     res.status(500).json({ message: "Failed to fetch workflow" });
@@ -82,32 +104,48 @@ export async function createWorkflow(req, res) {
 export async function updateWorkflow(req, res) {
   const userId = req.user.id;
   const { id } = req.params;
-  const { name, description, status, definition } = req.body;
+  const { name, description, status, definition } = req.body; // {nodes: [], edges: []}
 
+  const client = await pool.connect();
   try {
-    const { rows } = await pool.query(
-      `
-        UPDATE workflows
-        SET
-          name = COALESCE($1, name),
-          description = COALESCE($2, description),
-          status = COALESCE($3, status),
-          definition = COALESCE($4, definition),
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5 AND user_id = $6
-        RETURNING *
-      `,
+    await client.query("BEGIN");
+
+    // Update workflow metadata
+    await client.query(
+      `UPDATE workflows SET name = COALESCE($1, name), description = COALESCE($2, description),
+       status = COALESCE($3, status), definition = $4, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $5 AND user_id = $6`,
       [name, description, status, definition, id, userId]
     );
 
-    if (!rows[0]) {
-      return res.status(404).json({ message: "Workflow not found" });
+    // ✅ NEW: Save nodes
+    await client.query(`DELETE FROM nodes WHERE workflow_id = $1`, [id]);
+    for (const node of definition.nodes || []) {
+      await client.query(
+        `INSERT INTO nodes (id, workflow_id, type, position, data) 
+         VALUES ($1, $2, $3, $4, $5)`,
+        [node.id, id, node.type, node.position, node.data]
+      );
     }
 
-    res.json(rows[0]);
+    // ✅ NEW: Save connections
+    await client.query(`DELETE FROM connections WHERE workflow_id = $1`, [id]);
+    for (const edge of definition.edges || []) {
+      await client.query(
+        `INSERT INTO connections (id, workflow_id, source_node_id, target_node_id) 
+         VALUES ($1, $2, $3, $4)`,
+        [edge.id, id, edge.source, edge.target]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.json({ message: "Workflow saved" });
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Error updating workflow:", err);
-    res.status(500).json({ message: "Failed to update workflow" });
+    res.status(500).json({ message: "Failed to save workflow" });
+  } finally {
+    client.release();
   }
 }
 

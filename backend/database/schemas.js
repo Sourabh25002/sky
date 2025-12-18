@@ -58,3 +58,57 @@ export async function createWorkflowsTable() {
     client.release();
   }
 }
+
+export async function createNodesTable() {
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS nodes (
+        id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+        workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+        
+        type VARCHAR(100) NOT NULL, -- 'trigger', 'openai', 'slack', etc.
+        position JSONB NOT NULL, -- {x: 100, y: 200}
+        data JSONB NOT NULL DEFAULT '{}'::jsonb, -- node config
+        
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_nodes_workflow_id ON nodes(workflow_id)`
+    );
+
+    console.log("✅ Nodes table created");
+  } finally {
+    client.release();
+  }
+}
+
+export async function createConnectionsTable() {
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS connections (
+        id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+        workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+        
+        source_node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+        target_node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+        
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_connections_workflow_id ON connections(workflow_id)`
+    );
+    await client.query(
+      `CREATE INDEX IF NOT EXISTS idx_connections_source ON connections(source_node_id)`
+    );
+
+    console.log("✅ Connections table created");
+  } finally {
+    client.release();
+  }
+}

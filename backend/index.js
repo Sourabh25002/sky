@@ -6,7 +6,7 @@ import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.ts";
 import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
-// import { updateWorkflowsTable } from "./database/schemas.js";
+// import { createNodesTable } from "./database/schemas.js";
 import workflowsRouter from "./routes/workflow_routes.js";
 
 dotenv.config();
@@ -30,7 +30,7 @@ app.use("/api/inngest", serve({ client: inngest, functions }));
 
 async function runDatabaseSetup() {
   await checkDatabaseConnection(); // Check Neon connection
-  // await updateWorkflowsTable();
+  // await createNodesTable();
 }
 
 runDatabaseSetup().catch((err) => {
