@@ -9,6 +9,8 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
+  Handle,
+  Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import "./EditorPage.css";
@@ -16,77 +18,151 @@ import "./EditorPage.css";
 const API_BASE = "http://localhost:8000/api/workflows";
 
 const nodeTypes = {
+  // ✅ START NODE (Entry point - NO target handle)
+  start: ({ data }) => (
+    <div className="node start-node">
+      <div className="node-header">▶ Start</div>
+      <div className="node-body">{data.label || "Workflow Entry"}</div>
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="custom-handle"
+      />
+    </div>
+  ),
   webhook: ({ data }) => (
     <div className="node webhook-node">
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="custom-handle"
+      />
       <div className="node-header">🌐 Webhook</div>
       <div className="node-body">{data.label}</div>
-      <div className="react-flow__handle react-flow__handle__target" />
-      <div className="react-flow__handle react-flow__handle__source" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="custom-handle"
+      />
     </div>
   ),
   openai: ({ data }) => (
     <div className="node openai-node">
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="custom-handle"
+      />
       <div className="node-header">🤖 OpenAI</div>
       <div className="node-body">{data.label}</div>
-      <div className="react-flow__handle react-flow__handle__target" />
-      <div className="react-flow__handle react-flow__handle__source" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="custom-handle"
+      />
     </div>
   ),
   slack: ({ data }) => (
     <div className="node slack-node">
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="custom-handle"
+      />
       <div className="node-header">💬 Slack</div>
       <div className="node-body">{data.label}</div>
-      <div className="react-flow__handle react-flow__handle__target" />
-      <div className="react-flow__handle react-flow__handle__source" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="custom-handle"
+      />
     </div>
   ),
   http: ({ data }) => (
     <div className="node http-node">
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="custom-handle"
+      />
       <div className="node-header">🔗 HTTP</div>
       <div className="node-body">{data.label}</div>
-      <div className="react-flow__handle react-flow__handle__target" />
-      <div className="react-flow__handle react-flow__handle__source" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="custom-handle"
+      />
     </div>
   ),
 };
 
 const EditorPage = () => {
   const { workflowId } = useParams();
-
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
   const [workflow, setWorkflow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
-  useEffect(() => {
-    if (!workflowId) {
-      setLoading(false);
-      return;
-    }
+  const onKeyDown = useCallback(
+    (event) => {
+      if (
+        (event.key === "Backspace" || event.key === "Delete") &&
+        !event.metaKey &&
+        !event.ctrlKey
+      ) {
+        setNodes((nds) => nds.filter((n) => !n.selected));
+        setEdges((eds) => eds.filter((e) => !e.selected));
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
-    fetch(`${API_BASE}/${workflowId}`, { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Workflow not found");
-        return res.json();
-      })
-      .then((data) => {
-        setWorkflow(data);
-        setNodes(data.definition?.nodes || []);
-        setEdges(data.definition?.edges || []);
-      })
-      .catch((error) => {
-        console.error("Failed to load workflow:", error);
-        setWorkflow(null);
-      })
-      .finally(() => setLoading(false));
-  }, [workflowId, setNodes, setEdges]);
+  const onEdgeDoubleClick = useCallback(
+    (_event, edge) => {
+      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  useEffect(
+    () => {
+      if (!workflowId) {
+        setLoading(false);
+        return;
+      }
+
+      fetch(`${API_BASE}/${workflowId}`, { credentials: "include" })
+        .then((res) => {
+          if (!res.ok) throw new Error("Workflow not found");
+          return res.json();
+        })
+        .then((data) => {
+          setWorkflow(data);
+          setNodes(data.definition?.nodes || []);
+          setEdges(data.definition?.edges || []);
+        })
+        .catch((error) => {
+          console.error("Failed to load workflow:", error);
+          setWorkflow(null);
+        })
+        .finally(() => setLoading(false));
+    },
+    [workflowId] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const handleSave = async () => {
     if (!workflowId) return;
@@ -98,9 +174,14 @@ const EditorPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ definition: { nodes, edges } }),
       });
-      if (res.ok) alert("✅ Saved!");
+      if (res.ok) {
+        alert("✅ Saved!");
+      } else {
+        throw new Error("Save failed");
+      }
     } catch (err) {
       alert("❌ Save failed");
+      console.error(err);
     } finally {
       setSaving(false);
     }
@@ -114,22 +195,22 @@ const EditorPage = () => {
   const onDrop = (event) => {
     event.preventDefault();
     const type = event.dataTransfer.getData("application/reactflow");
-
     const newNode = {
       id: `${type}-${Date.now()}`,
       type,
       position: { x: Math.random() * 400, y: Math.random() * 400 },
       data: { label: `${type.toUpperCase()} Node` },
     };
-
     setNodes((nds) => nds.concat(newNode));
   };
 
+  // ✅ UPDATED: START NODE FIRST
   const nodeSelector = [
-    { id: "webhook", label: "Webhook", type: "webhook" },
-    { id: "openai", label: "OpenAI", type: "openai" },
-    { id: "slack", label: "Slack", type: "slack" },
-    { id: "http", label: "HTTP", type: "http" },
+    { id: "start", label: "▶ Start", type: "start" },
+    { id: "webhook", label: "🌐 Webhook", type: "webhook" },
+    { id: "openai", label: "🤖 OpenAI", type: "openai" },
+    { id: "slack", label: "💬 Slack", type: "slack" },
+    { id: "http", label: "🔗 HTTP", type: "http" },
   ];
 
   if (loading) return <div className="loading">Loading editor...</div>;
@@ -154,37 +235,63 @@ const EditorPage = () => {
       </div>
 
       <div className="editor-main">
-        <div className="node-selector">
-          <h3>Nodes</h3>
-          <div className="node-types">
-            {nodeSelector.map((node) => (
-              <div
-                key={node.id}
-                className="node-type-item"
-                draggable
-                onDragStart={(event) =>
-                  event.dataTransfer.setData("application/reactflow", node.type)
-                }
-              >
-                {node.id}
-              </div>
-            ))}
+        <div
+          className={`node-selector ${isSidebarOpen ? "open" : "collapsed"}`}
+        >
+          <div className="sidebar-toggle" onClick={toggleSidebar}>
+            {isSidebarOpen ? "◀" : "▶"}
           </div>
+
+          {isSidebarOpen && (
+            <>
+              <h3>Nodes</h3>
+              <div className="node-types">
+                {nodeSelector.map((node) => (
+                  <div
+                    key={node.id}
+                    className="node-type-item"
+                    draggable
+                    onDragStart={(event) =>
+                      event.dataTransfer.setData(
+                        "application/reactflow",
+                        node.type
+                      )
+                    }
+                  >
+                    {node.label || node.id}
+                  </div>
+                ))}
+              </div>
+              <div className="delete-instructions">
+                <strong>⌨️ Delete:</strong> Select + Backspace/Delete
+                <br />
+                <strong>🖱️ Edge:</strong> Double-click
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="editor-canvas" onDragOver={onDragOver} onDrop={onDrop}>
+        <div
+          className="editor-canvas"
+          tabIndex={-1}
+          onKeyDown={onKeyDown}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+        >
           <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onEdgeDoubleClick={onEdgeDoubleClick}
             nodeTypes={nodeTypes}
             fitView
-            connectionMode="loose" // ✅ CONNECT ANY HANDLES
-            nodesConnectable={true} // ✅ ENABLE CONNECTIONS
-            nodesDraggable={true} // ✅ DRAG NODES
-            edgesConnectable={true} // ✅ EDIT EDGES
+            connectionMode="loose"
+            nodesConnectable={true}
+            nodesDraggable={true}
+            edgesConnectable={true}
+            deleteKeyCode={46}
           >
             <Background />
             <Controls />

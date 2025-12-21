@@ -1,5 +1,5 @@
 .editor-page {
-  height: 100vh;
+  height: 95vh;
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -80,27 +80,73 @@
   height: 100%;
 }
 
+/* COLLAPSIBLE SIDEBAR */
 .node-selector {
   width: 240px;
   background: #f8fafc;
   border-right: 1px solid #e2e8f0;
-  padding: 20px;
-  overflow-y: auto;
+  padding: 24px 20px;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.node-selector.collapsed {
+  width: 48px !important;
+  padding: 24px 12px !important;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 24px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 20;
+}
+
+.sidebar-toggle:hover {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: white !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.node-selector.collapsed .sidebar-toggle {
+  right: 12px;
+  top: 24px;
 }
 
 .node-selector h3 {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .node-types {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  flex: 1;
+  margin-bottom: 20px;
 }
 
 .node-type-item {
@@ -120,11 +166,24 @@
   border-color: #3b82f6;
   background: #eff6ff;
   color: #1e40af;
-  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .node-type-item:active {
   cursor: grabbing;
+}
+
+.node-selector.collapsed h3,
+.node-selector.collapsed .node-types,
+.node-selector.collapsed .delete-instructions {
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
 }
 
 .editor-canvas {
@@ -135,7 +194,6 @@
   min-height: 0;
 }
 
-/* LOADING & ERROR */
 .loading,
 .workflow-not-found {
   display: flex;
@@ -175,49 +233,18 @@
   font-size: 0.75rem;
 }
 
-/* HANDLES - VISIBLE & CLICKABLE */
-.react-flow__handle {
-  position: absolute !important;
-  width: 12px !important;
-  height: 12px !important;
-  background: #3b82f6 !important;
-  border: 2px solid #ffffff !important;
-  border-radius: 50% !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  z-index: 10 !important;
-  opacity: 0.8 !important;
+/* ✅ START NODE - GREEN GRADIENT */
+.start-node {
+  border-left: 4px solid #10b981 !important;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
 }
 
-.react-flow__handle__source {
-  right: -6px !important;
+.start-node .node-header {
+  color: #059669 !important;
+  font-size: 0.85rem !important;
 }
 
-.react-flow__handle__target {
-  left: -6px !important;
-}
-
-.node:hover .react-flow__handle {
-  opacity: 1 !important;
-  transform: translateY(-50%) scale(1.2) !important;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
-}
-
-/* CONNECTIONS */
-.react-flow__connection {
-  stroke: #3b82f6 !important;
-  stroke-width: 3px !important;
-  pointer-events: none !important;
-}
-
-.react-flow__connectionline {
-  stroke: #3b82f6 !important;
-  stroke-width: 2px !important;
-  pointer-events: none !important;
-  stroke-linecap: round !important;
-}
-
-/* NODE COLORS */
+/* OTHER NODE COLORS */
 .webhook-node {
   border-left: 3px solid #059669;
 }
@@ -231,7 +258,47 @@
   border-left: 3px solid #dc2626;
 }
 
-/* CONTROLS - POSITION FIX */
+.custom-handle {
+  width: 12px !important;
+  height: 12px !important;
+  background: #3b82f6 !important;
+  border: 2px solid #ffffff !important;
+  border-radius: 50% !important;
+  opacity: 0.8 !important;
+}
+
+.node:hover .custom-handle {
+  opacity: 1 !important;
+  transform: scale(1.2) !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
+}
+
+.react-flow__connection {
+  stroke: #3b82f6 !important;
+  stroke-width: 3px !important;
+}
+
+.react-flow__connectionline {
+  stroke: #3b82f6 !important;
+  stroke-width: 2px !important;
+  stroke-linecap: round !important;
+}
+
+.react-flow__node.react-flow__node-selected {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+
+.react-flow__edge.react-flow__edge-selected {
+  stroke: #ef4444 !important;
+  stroke-width: 5px !important;
+}
+
+.react-flow__edge:hover {
+  stroke: #f59e0b !important;
+  stroke-width: 4px !important;
+}
+
 .react-flow__controls {
   background: rgba(255, 255, 255, 0.9) !important;
   border: 1px solid #e2e8f0 !important;
@@ -262,16 +329,32 @@
   background: #f8fafc !important;
 }
 
-/* RESPONSIVE */
+.delete-instructions {
+  padding: 16px;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #92400e;
+  line-height: 1.4;
+}
+
 @media (max-width: 768px) {
   .editor-main {
     flex-direction: column;
   }
-
   .node-selector {
-    width: 100%;
+    width: 100% !important;
     height: 100px;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
+    flex-direction: row !important;
+    padding: 16px 20px !important;
+  }
+  .node-selector.collapsible {
+    height: 64px !important;
+    width: 100% !important;
+  }
+  .sidebar-toggle {
+    position: static !important;
+    margin-left: auto;
   }
 }
