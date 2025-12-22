@@ -1,4 +1,5 @@
 import { pool } from "../database/db.js";
+import { inngest } from "../inngest/index.ts";
 
 // GET /api/workflows
 export async function getWorkflows(req, res) {
@@ -170,3 +171,24 @@ export async function deleteWorkflow(req, res) {
     res.status(500).json({ message: "Failed to delete workflow" });
   }
 }
+
+export const executeWorkflow = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id; // ✅ From auth middleware
+
+    console.log(`🎯 User: ${userId} executing workflow: ${id}`);
+
+    await inngest.send({
+      name: "workflows/execute.workflow",
+      data: {
+        workflowId: id,
+        userId: userId, // ✅ PASS REAL USER ID
+      },
+    });
+
+    res.json({ success: true, message: "Triggered!" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

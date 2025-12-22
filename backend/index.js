@@ -6,7 +6,11 @@ import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.ts";
 import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
-// import { createNodesTable } from "./database/schemas.js";
+// import {
+//   createNodesTable,
+//   createConnectionsTable,
+//   createWorkflowsTable,
+// } from "./database/schemas.js";
 import workflowsRouter from "./routes/workflow_routes.js";
 
 dotenv.config();
@@ -29,8 +33,10 @@ app.all("/api/auth/{*any}", toNodeHandler(auth));
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
 async function runDatabaseSetup() {
-  await checkDatabaseConnection(); // Check Neon connection
+  await checkDatabaseConnection();
+  // await createWorkflowsTable();
   // await createNodesTable();
+  // await createConnectionsTable();
 }
 
 runDatabaseSetup().catch((err) => {

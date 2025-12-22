@@ -1,4 +1,3 @@
-// src/pages/EditorPage/EditorPage.jsx
 import { useState, useCallback, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -13,16 +12,19 @@ import {
   Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import NodeModal from "../../components/NodeModal";
+import { useExecuteWorkflow } from "../../hooks/useExecuteWorkflow";
 import "./EditorPage.css";
 
 const API_BASE = "http://localhost:8000/api/workflows";
 
 const nodeTypes = {
-  // ✅ START NODE (Entry point - NO target handle)
   start: ({ data }) => (
-    <div className="node start-node">
+    <div className={`node start-node ${data.status || ""}`}>
       <div className="node-header">▶ Start</div>
       <div className="node-body">{data.label || "Workflow Entry"}</div>
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
       <Handle
         type="source"
         position={Position.Right}
@@ -31,14 +33,19 @@ const nodeTypes = {
     </div>
   ),
   webhook: ({ data }) => (
-    <div className="node webhook-node">
+    <div className={`node webhook-node ${data.status || ""}`}>
       <Handle
         type="target"
         position={Position.Left}
         className="custom-handle"
       />
       <div className="node-header">🌐 Webhook</div>
-      <div className="node-body">{data.label}</div>
+      <div className="node-body">{data.label || "Configure"}</div>
+      {data.result && (
+        <div className="result">{data.result.slice(0, 50)}...</div>
+      )}
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
       <Handle
         type="source"
         position={Position.Right}
@@ -47,14 +54,19 @@ const nodeTypes = {
     </div>
   ),
   openai: ({ data }) => (
-    <div className="node openai-node">
+    <div className={`node openai-node ${data.status || ""}`}>
       <Handle
         type="target"
         position={Position.Left}
         className="custom-handle"
       />
       <div className="node-header">🤖 OpenAI</div>
-      <div className="node-body">{data.label}</div>
+      <div className="node-body">{data.label || "Configure"}</div>
+      {data.result && (
+        <div className="result">{data.result.slice(0, 50)}...</div>
+      )}
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
       <Handle
         type="source"
         position={Position.Right}
@@ -63,14 +75,19 @@ const nodeTypes = {
     </div>
   ),
   slack: ({ data }) => (
-    <div className="node slack-node">
+    <div className={`node slack-node ${data.status || ""}`}>
       <Handle
         type="target"
         position={Position.Left}
         className="custom-handle"
       />
       <div className="node-header">💬 Slack</div>
-      <div className="node-body">{data.label}</div>
+      <div className="node-body">{data.label || "Configure"}</div>
+      {data.result && (
+        <div className="result">{data.result.slice(0, 50)}...</div>
+      )}
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
       <Handle
         type="source"
         position={Position.Right}
@@ -79,14 +96,24 @@ const nodeTypes = {
     </div>
   ),
   http: ({ data }) => (
-    <div className="node http-node">
+    <div className={`node http-node ${data.status || ""}`}>
       <Handle
         type="target"
         position={Position.Left}
         className="custom-handle"
       />
       <div className="node-header">🔗 HTTP</div>
-      <div className="node-body">{data.label}</div>
+      <div className="node-body">
+        {data.url ? `${data.url.slice(0, 40)}...` : "Configure URL"}
+        {data.result && (
+          <div className="result">{data.result.slice(0, 80)}...</div>
+        )}
+        {data.error && (
+          <div className="error">❌ {data.error.slice(0, 50)}</div>
+        )}
+      </div>
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
       <Handle
         type="source"
         position={Position.Right}
@@ -104,11 +131,23 @@ const EditorPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // ✅ STEP 5: Execute workflow hook
+  const { executeWorkflow, isPending: executePending } = useExecuteWorkflow();
+
+  // ✅ Manual trigger detection (Step 2)
+  const [hasManualTrigger, setHasManualTrigger] = useState(false);
+
+  useEffect(() => {
+    const hasTrigger = nodes.some((node) => node.type === "start");
+    setHasManualTrigger(hasTrigger);
+  }, [nodes]);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [setEdges]
   );
 
   const onKeyDown = useCallback(
@@ -122,47 +161,86 @@ const EditorPage = () => {
         setEdges((eds) => eds.filter((e) => !e.selected));
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [setNodes, setEdges]
   );
 
   const onEdgeDoubleClick = useCallback(
     (_event, edge) => {
       setEdges((eds) => eds.filter((e) => e.id !== edge.id));
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [setEdges]
   );
 
-  const toggleSidebar = () => {
+  const onNodeClick = useCallback((event, node) => {
+    setSelectedNode(node);
+    setShowModal(true);
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(!isSidebarOpen);
+  }, [isSidebarOpen]);
+
+  const handleNodeSave = useCallback(
+    (formData) => {
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === selectedNode?.id
+            ? { ...node, data: { ...node.data, ...formData } }
+            : node
+        )
+      );
+      setShowModal(false);
+    },
+    [selectedNode, setNodes]
+  );
+
+  // ✅ STEP 5: Execute handler
+  const handleExecuteClick = async () => {
+    if (!workflowId) {
+      alert("No workflow ID!");
+      return;
+    }
+
+    try {
+      await executeWorkflow(workflowId);
+      alert("✅ Workflow sent to background execution!");
+    } catch (error) {
+      alert("❌ Execution failed: " + error.message);
+    }
   };
 
-  useEffect(
-    () => {
-      if (!workflowId) {
+  // Load workflow
+  const loadWorkflow = useCallback(
+    async (id) => {
+      if (!id) {
         setLoading(false);
         return;
       }
 
-      fetch(`${API_BASE}/${workflowId}`, { credentials: "include" })
-        .then((res) => {
-          if (!res.ok) throw new Error("Workflow not found");
-          return res.json();
-        })
-        .then((data) => {
-          setWorkflow(data);
-          setNodes(data.definition?.nodes || []);
-          setEdges(data.definition?.edges || []);
-        })
-        .catch((error) => {
-          console.error("Failed to load workflow:", error);
-          setWorkflow(null);
-        })
-        .finally(() => setLoading(false));
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/${id}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Workflow not found");
+
+        const data = await res.json();
+        setWorkflow(data);
+        setNodes(data.definition?.nodes || []);
+        setEdges(data.definition?.edges || []);
+      } catch (error) {
+        console.error("Failed to load workflow:", error);
+        setWorkflow(null);
+      } finally {
+        setLoading(false);
+      }
     },
-    [workflowId] // eslint-disable-line react-hooks/exhaustive-deps
+    [setNodes, setEdges, setWorkflow, setLoading]
   );
+
+  useEffect(() => {
+    loadWorkflow(workflowId);
+  }, [workflowId, loadWorkflow]);
 
   const handleSave = async () => {
     if (!workflowId) return;
@@ -204,7 +282,6 @@ const EditorPage = () => {
     setNodes((nds) => nds.concat(newNode));
   };
 
-  // ✅ UPDATED: START NODE FIRST
   const nodeSelector = [
     { id: "start", label: "▶ Start", type: "start" },
     { id: "webhook", label: "🌐 Webhook", type: "webhook" },
@@ -221,8 +298,8 @@ const EditorPage = () => {
     <div className="editor-page">
       <div className="editor-header">
         <div>
-          <h1>{workflow.name}</h1>
-          <span className="workflow-status">{workflow.status}</span>
+          <h1>{workflow.name || "Untitled Workflow"}</h1>
+          <span className="workflow-status">{workflow.status || "Draft"}</span>
         </div>
         <div className="editor-actions">
           <button className="back-btn" onClick={() => window.history.back()}>
@@ -231,6 +308,17 @@ const EditorPage = () => {
           <button className="save-btn" onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "💾 Save"}
           </button>
+
+          {/* ✅ STEP 5: Execute Button */}
+          {hasManualTrigger && (
+            <button
+              className={`execute-btn ${executePending ? "executing" : ""}`}
+              onClick={handleExecuteClick}
+              disabled={executePending || !workflowId}
+            >
+              {executePending ? "⏳ Sending..." : "🚀 Execute Workflow"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -258,7 +346,7 @@ const EditorPage = () => {
                       )
                     }
                   >
-                    {node.label || node.id}
+                    {node.label}
                   </div>
                 ))}
               </div>
@@ -266,6 +354,10 @@ const EditorPage = () => {
                 <strong>⌨️ Delete:</strong> Select + Backspace/Delete
                 <br />
                 <strong>🖱️ Edge:</strong> Double-click
+                <br />
+                <strong>⚙️ Configure:</strong> Click any node
+                <br />
+                <strong>🚀 Execute:</strong> Needs Start node
               </div>
             </>
           )}
@@ -284,6 +376,7 @@ const EditorPage = () => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={onNodeClick}
             onEdgeDoubleClick={onEdgeDoubleClick}
             nodeTypes={nodeTypes}
             fitView
@@ -299,6 +392,14 @@ const EditorPage = () => {
           </ReactFlow>
         </div>
       </div>
+
+      <NodeModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        nodeType={selectedNode?.type}
+        nodeData={selectedNode?.data}
+        onSave={handleNodeSave}
+      />
     </div>
   );
 };
