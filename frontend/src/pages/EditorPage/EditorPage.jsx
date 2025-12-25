@@ -32,6 +32,26 @@ const nodeTypes = {
       />
     </div>
   ),
+  googleForm: ({ data }) => (
+    <div className={`node google-form-node ${data.status || ""}`}>
+      <Handle type="target" position={Position.Left} className="custom-handle" />
+      <div className="node-header">📋 Google Form</div>
+      <div className="node-body">
+        {data.formId ? (
+          <>
+            Form: {data.formId.slice(0, 20)}...
+            <div className="result" style={{fontSize: '0.65rem', marginTop: '4px'}}>
+              Webhook: /api/trigger/google-form/{data.workflowId}
+            </div>
+          </>
+        ) : "Configure Form"}
+        {data.result && <div className="result">{JSON.stringify(data.result).slice(0, 60)}...</div>}
+      </div>
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
+      <Handle type="source" position={Position.Right} className="custom-handle" />
+    </div>
+  ),
   webhook: ({ data }) => (
     <div className={`node webhook-node ${data.status || ""}`}>
       <Handle
@@ -141,9 +161,13 @@ const EditorPage = () => {
   const [hasManualTrigger, setHasManualTrigger] = useState(false);
 
   useEffect(() => {
-    const hasTrigger = nodes.some((node) => node.type === "start");
+    // ✅ FIXED: Detect BOTH start AND google-form
+    const hasTrigger = nodes.some((node) => 
+      node.type === "start" || node.type === "googleForm"  // ✅ "googleForm"
+    );
     setHasManualTrigger(hasTrigger);
   }, [nodes]);
+
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -284,6 +308,7 @@ const EditorPage = () => {
 
   const nodeSelector = [
     { id: "start", label: "▶ Start", type: "start" },
+     { id: "googleform", label: "📋 Google Form", type: "googleForm" },
     { id: "webhook", label: "🌐 Webhook", type: "webhook" },
     { id: "openai", label: "🤖 OpenAI", type: "openai" },
     { id: "slack", label: "💬 Slack", type: "slack" },
@@ -371,7 +396,13 @@ const EditorPage = () => {
           onDrop={onDrop}
         >
           <ReactFlow
-            nodes={nodes}
+            nodes={nodes.map(node => ({
+              ...node,
+              data: {
+                ...node.data,
+                workflowId: workflowId  // ✅ Google Form node can access this
+              }
+            }))}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -398,6 +429,7 @@ const EditorPage = () => {
         onClose={() => setShowModal(false)}
         nodeType={selectedNode?.type}
         nodeData={selectedNode?.data}
+        workflowId={workflowId}  // ✅ PASS THIS PROP
         onSave={handleNodeSave}
       />
     </div>

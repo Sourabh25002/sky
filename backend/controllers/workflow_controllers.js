@@ -103,48 +103,47 @@ export async function createWorkflow(req, res) {
 
 // PUT /api/workflows/:id
 export async function updateWorkflow(req, res) {
-  const userId = req.user.id;
-  const { id } = req.params;
-  const { name, description, status, definition } = req.body; // {nodes: [], edges: []}
-
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    const { id: workflowId } = req.params;
+    const userId = req.user.id;
+    const { definition } = req.body;
+    
+    console.log("🔍 Frontend sent:", {
+      nodes: definition.nodes?.map(n => ({id: n.id, type: n.type})),
+      edges: definition.edges?.map(e => ({source: e.source, target: e.target}))
+    });
 
-    // Update workflow metadata
-    await client.query(
-      `UPDATE workflows SET name = COALESCE($1, name), description = COALESCE($2, description),
-       status = COALESCE($3, status), definition = $4, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $5 AND user_id = $6`,
-      [name, description, status, definition, id, userId]
-    );
-
-    // ✅ NEW: Save nodes
-    await client.query(`DELETE FROM nodes WHERE workflow_id = $1`, [id]);
+    await client.query('BEGIN');
+    
+    // Delete existing
+    await client.query('DELETE FROM connections WHERE workflow_id = $1', [workflowId]);
+    await client.query('DELETE FROM nodes WHERE workflow_id = $1', [workflowId]);
+    
+    // Insert NODES FIRST
     for (const node of definition.nodes || []) {
-      await client.query(
-        `INSERT INTO nodes (id, workflow_id, type, position, data) 
-         VALUES ($1, $2, $3, $4, $5)`,
-        [node.id, id, node.type, node.position, node.data]
-      );
+      await client.query(`
+        INSERT INTO nodes (id, workflow_id, type, position, data)
+        VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
+      `, [node.id, workflowId, node.type, node.position, node.data]);  // ✅ FIXED
     }
-
-    // ✅ NEW: Save connections
-    await client.query(`DELETE FROM connections WHERE workflow_id = $1`, [id]);
+    
+    // Insert EDGES
     for (const edge of definition.edges || []) {
-      await client.query(
-        `INSERT INTO connections (id, workflow_id, source_node_id, target_node_id) 
-         VALUES ($1, $2, $3, $4)`,
-        [edge.id, id, edge.source, edge.target]
-      );
+      await client.query(`
+        INSERT INTO connections (id, workflow_id, source_node_id, target_node_id)
+        VALUES (gen_random_uuid(), $1, $2, $3)
+      `, [workflowId, edge.source, edge.target]);
     }
-
-    await client.query("COMMIT");
-    res.json({ message: "Workflow saved" });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error updating workflow:", err);
-    res.status(500).json({ message: "Failed to save workflow" });
+    
+    await client.query('UPDATE workflows SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [workflowId]);
+    await client.query('COMMIT');
+    
+    res.json({ success: true });
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Save error:', error);
+    res.status(500).json({ error: error.message });
   } finally {
     client.release();
   }

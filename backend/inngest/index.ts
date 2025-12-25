@@ -1,12 +1,17 @@
-// src/inngest/index.ts - FIXED VERSION
 import { Inngest } from "inngest";
-import { getWorkflowWithNodesAndConnections } from "../database/workflow_queries.js"; // ✅ .js extension
+import { getWorkflowWithNodesAndConnections } from "../database/workflow_queries.js";
 import { topologicalSort } from "../utils/topoSort.js";
-import { getExecutor } from "./executors/registry.js"; // ✅ .js extension
+import { getExecutor } from "./executors/registry.js";
+import * as dotenv from "dotenv";
+dotenv.config();
 
-export const inngest = new Inngest({ id: "sky" });
+export const inngest = new Inngest({
+  id: "sky",
+  eventKey: process.env.INNGEST_EVENT_KEY!,
+  url: process.env.INNGEST_URL || "https://api.inngest.com",
+});
 
-// ✅ Type Definitions
+// Type Definitions
 interface Node {
   id: string;
   type: string;
@@ -30,47 +35,64 @@ export const executeWorkflow = inngest.createFunction(
   { id: "execute-workflow" },
   { event: "workflows/execute.workflow" },
   async ({ step, event }) => {
-    const { workflowId, userId } = event.data; // ✅ REAL userId from controller!
+    const { workflowId, userId } = event.data;
     console.log("🎯 Workflow execution started:", workflowId, "user:", userId);
 
-    // ✅ FIXED: Use REAL userId
+    // STEP 1: Fetch workflow data
     const workflow = await step.run("prepare-workflow", async () => {
-      return await getWorkflowWithNodesAndConnections(workflowId, userId); // ✅ userId from event!
+      return await getWorkflowWithNodesAndConnections(workflowId, userId);
     });
 
     console.log(
       `📊 Loaded ${workflow.nodes.length} nodes, ${workflow.connections.length} connections`
     );
 
-    // ✅ STEP 7: Topological sort (8:00-15:00)
+    // DEBUG: Log ALL nodes data
+    workflow.nodes.forEach((node, index) => {
+      console.log(`🔍 Node ${index}:`, {
+        id: node.id,
+        type: node.type,
+        data: node.data,
+        hasEndpoint: node.data?.endpoint,
+        hasMethod: node.data?.method
+      });
+    });
+
+    // STEP 2: Topological sort
     const sortedNodes: Node[] = await step.run("topological-sort", async () => {
       return topologicalSort(workflow.nodes, workflow.connections);
     });
 
     console.log(
       "🔄 Node execution order:",
-      sortedNodes.map((n: Node) => n.type)
+      sortedNodes.map((n: Node) => `${n.type}(${n.id.slice(0, 8)})`).join(" → ")
     );
 
-    // ✅ STEP 9: Main execution loop (20:00-25:00)
+    // STEP 3: Main execution loop
     let context: Record<string, any> = { initial: {} };
 
     for (const node of sortedNodes) {
-      const executor: (
-        node: Node,
-        context: Record<string, any>
-      ) => Promise<Record<string, any>> = getExecutor(node.type);
-      context = await step.run(`execute-${node.type}`, async () => {
+      console.log(`\n🚀 Executing node ${node.id} (${node.type}):`, {
+        data: node.data,
+        hasEndpoint: !!node.data?.endpoint,
+        fullNode: node
+      });
+
+      const executor = getExecutor(node.type);
+      context = await step.run(`execute-${node.id}-${node.type}`, async () => {
         return await executor(node, context);
       });
 
       console.log(
-        `✅ ${node.type} completed, context keys:`,
+        `✅ ${node.type}(${node.id.slice(0, 8)}) completed, context keys:`,
         Object.keys(context)
       );
     }
 
-    console.log("🎉 Workflow execution completed!");
+    console.log("🎉 Workflow execution completed!", {
+      finalContextKeys: Object.keys(context),
+      workflowId
+    });
 
     return {
       status: "completed",
@@ -82,3 +104,4 @@ export const executeWorkflow = inngest.createFunction(
 );
 
 export const functions = [executeWorkflow];
+export default inngest;

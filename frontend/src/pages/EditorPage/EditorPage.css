@@ -563,3 +563,11 @@
     flex-wrap: wrap;
   }
 }
+
+.google-form-node {
+  border-left: 4px solid #8b5cf6 !important; 
+}
+.google-form-node .node-header {
+  color: #7c3aed !important;       
+}
+

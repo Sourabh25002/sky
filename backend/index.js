@@ -12,6 +12,7 @@ import { checkDatabaseConnection } from "./database/db.js";
 //   createWorkflowsTable,
 // } from "./database/schemas.js";
 import workflowsRouter from "./routes/workflow_routes.js";
+import googleFormRouter from "./routes/google_form_routes.js";
 
 dotenv.config();
 const app = express();
@@ -50,6 +51,7 @@ app.get("/", (req, res) => {
 
 // Mount workflows API under /api/workflows
 app.use("/api/workflows", workflowsRouter);
+app.use("/api/trigger/google-form", googleFormRouter);
 
 // PORT and server setup
 const PORT = process.env.PORT;
