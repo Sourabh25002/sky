@@ -116,29 +116,61 @@ export async function updateWorkflow(req, res) {
 
     await client.query('BEGIN');
     
-    // Delete existing
-    await client.query('DELETE FROM connections WHERE workflow_id = $1', [workflowId]);
-    await client.query('DELETE FROM nodes WHERE workflow_id = $1', [workflowId]);
+    // ✅ STEP 1: Get ALL current node IDs from DB
+    const currentNodesResult = await client.query(
+      'SELECT id FROM nodes WHERE workflow_id = $1', [workflowId]
+    );
+    const currentNodeIds = new Set(currentNodesResult.rows.map(row => row.id));
     
-    // Insert NODES FIRST
-    for (const node of definition.nodes || []) {
-      await client.query(`
-        INSERT INTO nodes (id, workflow_id, type, position, data)
-        VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
-      `, [node.id, workflowId, node.type, node.position, node.data]);  // ✅ FIXED
+    // ✅ STEP 2: Get new node IDs from frontend
+    const newNodes = definition.nodes || [];
+    const newNodeIds = new Set(newNodes.map(node => node.id));
+    
+    // ✅ STEP 3: Delete INVALID connections (target/source nodes don't exist)
+    await client.query(`
+      DELETE FROM connections 
+      WHERE workflow_id = $1 
+      AND (source_node_id NOT IN ($2) OR target_node_id NOT IN ($3))
+    `, [workflowId, Array.from(newNodeIds), Array.from(newNodeIds)]);
+    
+    // ✅ STEP 4: Delete OLD nodes (not in newNodes)
+    for (const nodeId of currentNodeIds) {
+      if (!newNodeIds.has(nodeId)) {
+        await client.query('DELETE FROM nodes WHERE id = $1 AND workflow_id = $2', [nodeId, workflowId]);
+      }
     }
+
+ // ✅ STEP 5: UPSERT (NO updated_at)
+for (const node of newNodes) {
+  await client.query(`
+    INSERT INTO nodes (id, workflow_id, type, position, data)
+    VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
+    ON CONFLICT (id) 
+    DO UPDATE SET 
+      type = EXCLUDED.type,
+      position = EXCLUDED.position,
+      data = EXCLUDED.data
+  `, [node.id, workflowId, node.type, node.position, node.data]);
+}
+
+
     
-    // Insert EDGES
+    // ✅ STEP 6: Update ALL connections (safe - only valid nodes)
+    await client.query('DELETE FROM connections WHERE workflow_id = $1', [workflowId]);
     for (const edge of definition.edges || []) {
-      await client.query(`
-        INSERT INTO connections (id, workflow_id, source_node_id, target_node_id)
-        VALUES (gen_random_uuid(), $1, $2, $3)
-      `, [workflowId, edge.source, edge.target]);
+      // ✅ VALIDATION: Only insert if BOTH nodes exist
+      if (newNodeIds.has(edge.source) && newNodeIds.has(edge.target)) {
+        await client.query(`
+          INSERT INTO connections (id, workflow_id, source_node_id, target_node_id)
+          VALUES (gen_random_uuid(), $1, $2, $3)
+        `, [workflowId, edge.source, edge.target]);
+      }
     }
     
     await client.query('UPDATE workflows SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [workflowId]);
     await client.query('COMMIT');
     
+    console.log("✅ Workflow saved:", { workflowId, nodeCount: newNodes.length, edgeCount: (definition.edges || []).length });
     res.json({ success: true });
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});

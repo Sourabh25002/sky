@@ -18,10 +18,13 @@
     "@polar-sh/sdk": "^0.41.5",
     "ai": "^5.0.113",
     "better-auth": "^1.4.7",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "helmet": "^8.1.0",
     "inngest": "^3.48.1",
+    "morgan": "^1.10.1",
     "pg": "^8.16.3",
     "topo-sort": "^1.0.0"
   }

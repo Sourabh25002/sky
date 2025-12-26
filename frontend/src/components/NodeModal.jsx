@@ -11,7 +11,6 @@ const NodeModal = ({ isOpen, onClose, nodeType, nodeData = {}, onSave, workflowI
 
   if (!isOpen) return null;
 
-  // ✅ HELPER: Update form data consistently
   const updateFormData = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
@@ -69,7 +68,6 @@ const NodeModal = ({ isOpen, onClose, nodeType, nodeData = {}, onSave, workflowI
             </>
           )}
 
-          {/* ✅ FIXED GOOGLE FORM - Now uses workflowId prop */}
           {nodeType === "googleForm" && (
             <div className="form-group">
               <label>Google Form ID</label>
@@ -88,16 +86,36 @@ const NodeModal = ({ isOpen, onClose, nodeType, nodeData = {}, onSave, workflowI
                   <br/><small>Copy this URL → Google Sheets → Webhooks</small>
                 </div>
               )}
-              <div style={{marginTop: '8px', padding: '8px', background: '#f0fdf4', borderRadius: '6px', fontSize: '0.8rem'}}>
-                <strong>Setup:</strong> Google Form → Responses → Sheets → Extensions → Apps Script → Add webhook
-              </div>
             </div>
           )}
 
+          {/* ✅ FIXED GEMINI - BACKTICKS! */}
+          {nodeType === "gemini" && (
+            <>
+              <label>System Prompt:</label>
+              <textarea
+                value={formData.systemPrompt || "You are a helpful assistant."}  // ✅ ADD THIS
+                onChange={(e) => updateFormData('systemPrompt', e.target.value)}
+                placeholder="Optional: Define AI behavior"
+                rows="2"
+              />
+              <label>User Prompt:</label>
+              <textarea
+                value={formData.userPrompt || ""}  // ✅ ADD THIS
+                onChange={(e) => updateFormData('userPrompt', e.target.value)}
+                placeholder="Summarize google_form.message OR write email to google_form.email"
+                rows="4"
+              />
+              <div style={{fontSize: '0.8rem', color: '#64748b', marginTop: '8px'}}>
+                Template syntax: google_form.email, http_result.data
+              </div>
+            </>
+          )}
+
+
+
           <div className="modal-actions">
-            <button type="button" onClick={onClose}>
-              Cancel
-            </button>
+            <button type="button" onClick={onClose}>Cancel</button>
             <button type="submit">Save Configuration</button>
           </div>
         </form>

@@ -571,3 +571,9 @@
   color: #7c3aed !important;       
 }
 
+.gemini-node {
+  border-left: 4px solid #ec4899 !important;
+}
+.gemini-node .node-header {
+  color: #be185d !important;
+}

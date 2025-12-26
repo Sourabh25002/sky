@@ -1,6 +1,5 @@
 import { pool } from "./db.js";
 
-// Create workflows table with FK to Better Auth's "user" table
 export async function createWorkflowsTable() {
   const client = await pool.connect();
   try {

@@ -103,5 +103,14 @@ export const executeWorkflow = inngest.createFunction(
   }
 );
 
-export const functions = [executeWorkflow];
+const helloFunction = inngest.createFunction(
+  { id: "hello-world-function" },
+  { event: "app/hello.world" },
+  async ({ step, event }) => {
+    console.log("Hello World!");
+    return { message: "Hello World!" };
+  }
+);
+
+export const functions = [executeWorkflow, helloFunction];
 export default inngest;

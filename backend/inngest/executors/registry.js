@@ -1,4 +1,7 @@
 // Default passthrough executor
+import { google } from '@ai-sdk/google';
+import { generateText } from 'ai';
+
 const passthroughExecutor = async (node, context) => {
   console.log(`⏭️  Passthrough: ${node.type}(${node.id.slice(0, 8)})`);
   return context;
@@ -126,6 +129,45 @@ const googleFormExecutor = async (node, context, step) => {
   };
 };
 
+const geminiExecutor = async (node, context, step) => {
+  console.log("🤖 Gemini AI Node:", node.data);
+  
+  const model = google('gemini-2.5-flash'); // Or gemini-1.5-pro
+  
+  const { systemPrompt = "You are a helpful assistant.", userPrompt } = node.data;
+  
+  if (!userPrompt) {
+    throw new Error("AI node missing user prompt");
+  }
+  
+  // ✅ Use context from previous nodes (Google Form, HTTP, etc.)
+  const fullPrompt = userPrompt
+    .replace(/{{google_form\.([^}]+)}}/g, (_, field) => context.google_form?.submission?.[field] || '')
+    .replace(/{{([^}]+)}}/g, (_, key) => context[key] || '');
+  
+  console.log("🤖 AI Prompt:", fullPrompt);
+  
+  const { text } = await generateText({
+    model,
+    prompt: fullPrompt,
+    system: systemPrompt,
+    maxTokens: 1000,
+    temperature: 0.7
+  });
+  
+  console.log("🤖 AI Response:", text.slice(0, 100) + '...');
+  
+  return {
+    ...context,
+    [`${node.id}_ai_result`]: text,
+    ai_response: {
+      text,
+      model: 'gemini-2.5-flash',
+      timestamp: new Date().toISOString()
+    }
+  };
+};
+
 
 // Executor Registry
 export const getExecutor = (nodeType) => {
@@ -140,6 +182,7 @@ export const getExecutor = (nodeType) => {
     case "http":
     case "httprequest":
       return httpExecutor;
+    case "gemini": case "ai": case "openai": return geminiExecutor; 
     default:
       return passthroughExecutor;
   }

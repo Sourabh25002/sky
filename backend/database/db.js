@@ -1,31 +1,8 @@
-// import dotenv from "dotenv";
-// import pkg from "pg";
-
-// dotenv.config();
-
-// const { Pool } = pkg;
-
-// export const pool = new Pool({
-//   connectionString: process.env.DATABASE_URL,
-//   ssl: { rejectUnauthorized: false },
-// });
-
-// export async function checkDatabaseConnection() {
-//   const client = await pool.connect();
-//   try {
-//     const res = await client.query("SELECT now()");
-//     console.log("Connected to Neon, time:", res.rows[0].now);
-//   } finally {
-//     client.release();
-//   }
-// }
-
-import pkg from "pg"; // Import the pg package as a whole
-const { Pool } = pkg; // Destructure the Pool class from the package
+import pkg from "pg";
+const { Pool } = pkg;
 import * as dotenv from "dotenv";
 dotenv.config();
 
-// Local Database configuration
 const pool = new Pool({
   user: "postgres",
   host: "localhost",
@@ -34,7 +11,6 @@ const pool = new Pool({
   port: 5432,
 });
 
-// Function to check the database connection
 const checkDatabaseConnection = async () => {
   try {
     await pool.connect();
@@ -46,5 +22,4 @@ const checkDatabaseConnection = async () => {
   }
 };
 
-// Export the pool and the check connection function
 export { pool, checkDatabaseConnection };

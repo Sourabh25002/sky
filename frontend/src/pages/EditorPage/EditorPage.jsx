@@ -141,6 +141,21 @@ const nodeTypes = {
       />
     </div>
   ),
+  gemini: ({ data }) => (
+    <div className={`node gemini-node ${data.status || ""}`}>
+      <Handle type="target" position={Position.Left} className="custom-handle" />
+      <div className="node-header">🤖 Gemini AI</div>
+      <div className="node-body">
+        {data.userPrompt ? `${data.userPrompt.slice(0, 30)}...` : "Configure AI"}
+        {data.ai_response?.text && (
+          <div className="result">{data.ai_response.text.slice(0, 60)}...</div>
+        )}
+      </div>
+      {data.status === "success" && <div className="status success">✅</div>}
+      {data.status === "error" && <div className="status error">❌</div>}
+      <Handle type="source" position={Position.Right} className="custom-handle" />
+    </div>
+  ),
 };
 
 const EditorPage = () => {
@@ -153,6 +168,7 @@ const EditorPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedNode, setSelectedNode] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [currentNodeId, setCurrentNodeId] = useState(null);
 
   // ✅ STEP 5: Execute workflow hook
   const { executeWorkflow, isPending: executePending } = useExecuteWorkflow();
@@ -196,27 +212,28 @@ const EditorPage = () => {
   );
 
   const onNodeClick = useCallback((event, node) => {
-    setSelectedNode(node);
-    setShowModal(true);
-  }, []);
+  setSelectedNode(node);
+  setCurrentNodeId(node.id);  // ✅ Store ID separately
+  setShowModal(true);
+}, []);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(!isSidebarOpen);
   }, [isSidebarOpen]);
 
-  const handleNodeSave = useCallback(
-    (formData) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === selectedNode?.id
-            ? { ...node, data: { ...node.data, ...formData } }
-            : node
-        )
-      );
-      setShowModal(false);
-    },
-    [selectedNode, setNodes]
+const handleNodeSave = useCallback((formData) => {
+  if (!currentNodeId) return;
+  
+  setNodes((nds) =>
+    nds.map((node) =>
+      node.id === currentNodeId     // ✅ Use stable ID!
+        ? { ...node, data: { ...node.data, ...formData } }
+        : node
+    )
   );
+  setShowModal(false);
+}, [currentNodeId]);  // ✅ Only ID!
+
 
   // ✅ STEP 5: Execute handler
   const handleExecuteClick = async () => {
@@ -267,6 +284,7 @@ const EditorPage = () => {
   }, [workflowId, loadWorkflow]);
 
   const handleSave = async () => {
+    console.log("🚀 FULL NODES BEFORE SAVE:", JSON.stringify(nodes, null, 2));
     if (!workflowId) return;
     setSaving(true);
     try {
@@ -301,14 +319,25 @@ const EditorPage = () => {
       id: `${type}-${Date.now()}`,
       type,
       position: { x: Math.random() * 400, y: Math.random() * 400 },
-      data: { label: `${type.toUpperCase()} Node` },
+      data: { 
+        label: `${type.toUpperCase()} Node`,
+        ...(type === "gemini" && {
+          userPrompt: "",
+          systemPrompt: "You are a helpful assistant."
+        }),
+        ...(type === "http" && { url: "", method: "GET" }),
+        ...(type === "googleForm" && { formId: "" })
+      },
     };
     setNodes((nds) => nds.concat(newNode));
   };
 
+
+
   const nodeSelector = [
     { id: "start", label: "▶ Start", type: "start" },
      { id: "googleform", label: "📋 Google Form", type: "googleForm" },
+     { id: "gemini", label: "🤖 Gemini AI", type: "gemini" },
     { id: "webhook", label: "🌐 Webhook", type: "webhook" },
     { id: "openai", label: "🤖 OpenAI", type: "openai" },
     { id: "slack", label: "💬 Slack", type: "slack" },
@@ -396,13 +425,7 @@ const EditorPage = () => {
           onDrop={onDrop}
         >
           <ReactFlow
-            nodes={nodes.map(node => ({
-              ...node,
-              data: {
-                ...node.data,
-                workflowId: workflowId  // ✅ Google Form node can access this
-              }
-            }))}
+            nodes={nodes} 
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
