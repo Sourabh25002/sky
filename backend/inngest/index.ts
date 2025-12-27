@@ -1,15 +1,10 @@
-import { Inngest } from "inngest";
+import * as dotenv from "dotenv";
+dotenv.config();
+import { inngest } from "./client.ts";
 import { getWorkflowWithNodesAndConnections } from "../database/workflow_queries.js";
 import { topologicalSort } from "../utils/topoSort.js";
 import { getExecutor } from "./executors/registry.js";
-import * as dotenv from "dotenv";
-dotenv.config();
-
-export const inngest = new Inngest({
-  id: "sky",
-  eventKey: process.env.INNGEST_EVENT_KEY!,
-  url: process.env.INNGEST_URL || "https://api.inngest.com",
-});
+import { helloFunction } from "./functions/hello.ts";
 
 // Type Definitions
 interface Node {
@@ -54,7 +49,7 @@ export const executeWorkflow = inngest.createFunction(
         type: node.type,
         data: node.data,
         hasEndpoint: node.data?.endpoint,
-        hasMethod: node.data?.method
+        hasMethod: node.data?.method,
       });
     });
 
@@ -75,7 +70,7 @@ export const executeWorkflow = inngest.createFunction(
       console.log(`\n🚀 Executing node ${node.id} (${node.type}):`, {
         data: node.data,
         hasEndpoint: !!node.data?.endpoint,
-        fullNode: node
+        fullNode: node,
       });
 
       const executor = getExecutor(node.type);
@@ -91,7 +86,7 @@ export const executeWorkflow = inngest.createFunction(
 
     console.log("🎉 Workflow execution completed!", {
       finalContextKeys: Object.keys(context),
-      workflowId
+      workflowId,
     });
 
     return {
@@ -103,14 +98,4 @@ export const executeWorkflow = inngest.createFunction(
   }
 );
 
-const helloFunction = inngest.createFunction(
-  { id: "hello-world-function" },
-  { event: "app/hello.world" },
-  async ({ step, event }) => {
-    console.log("Hello World!");
-    return { message: "Hello World!" };
-  }
-);
-
 export const functions = [executeWorkflow, helloFunction];
-export default inngest;

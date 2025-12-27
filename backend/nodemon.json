@@ -1,0 +1,6 @@
+{
+  "watch": ["."],
+  "ext": "js,mjs,cjs,ts,tsx,json,env",
+  "ignore": ["node_modules", "dist", ".git"],
+  "legacyWatch": true
+}

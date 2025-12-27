@@ -6,7 +6,7 @@ import { authClient } from "../../utils/auth";
 
 const Sidebar = () => {
   const { data: session, isPending } = authClient.useSession();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const userName = session?.user?.name || "Account";
 

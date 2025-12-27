@@ -11,7 +11,6 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// All workflow routes require auth
 router.get("/", requireAuth, getWorkflows);
 router.get("/:id", requireAuth, getWorkflowById);
 router.post("/", requireAuth, createWorkflow);

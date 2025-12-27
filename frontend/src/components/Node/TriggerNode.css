@@ -1,0 +1,37 @@
+.triggerNode {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+
+  background: #252526;
+  border: 1px solid #3e3e42;
+
+  display: grid;
+  place-items: center;
+
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+/* make the icon crisp and centered */
+.triggerIcon {
+  width: 26px;
+  height: 26px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* style the outgoing handle */
+/* .triggerHandle {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+
+  background: #007acc;
+  border: 2px solid #1e1e1e;
+}
+
+.triggerHandle:hover {
+  filter: brightness(1.12);
+} */

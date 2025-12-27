@@ -1,0 +1,93 @@
+.editorSidebar {
+  background: #252526;
+  border-right: 1px solid #3e3e42;
+  padding: 12px;
+  color: #d4d4d4;
+  min-height: 0;
+  overflow: auto;
+
+  width: 260px;
+  transition: width 0.18s ease, padding 0.18s ease;
+}
+
+.editorSidebar.isCollapsed {
+  width: 72px;
+  padding: 12px 10px;
+}
+
+.editorSidebarTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.editorSidebarTitle {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9da0a6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editorSidebarToggle {
+  border: 1px solid #3e3e42;
+  background: #2d2d30;
+  color: #d4d4d4;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.editorSidebarToggle:hover {
+  border-color: #007acc;
+  color: #ffffff;
+}
+
+.editorSidebarList {
+  display: grid;
+  gap: 8px;
+}
+
+.editorSidebarItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 6px;
+  background: #2d2d30;
+  border: 1px solid #3e3e42;
+  cursor: grab;
+  user-select: none;
+}
+
+.editorSidebarItem:hover {
+  border-color: #007acc;
+}
+
+.editorSidebarIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.editorSidebarLabel {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* hide text when collapsed */
+.editorSidebar.isCollapsed .editorSidebarLabel,
+.editorSidebar.isCollapsed .editorSidebarTitle {
+  display: none;
+}
+
+/* center icons when collapsed */
+.editorSidebar.isCollapsed .editorSidebarItem {
+  justify-content: center;
+  padding: 10px 0;
+}

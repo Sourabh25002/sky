@@ -3,15 +3,20 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   width: 220px;
   min-height: 100vh;
   padding: 1.5rem 1.25rem;
-  background-color: #f9fafb;
-  color: #111827;
+
+  /* VS Code Dark-like */
+  background: #252526;
+  color: #d4d4d4;
+
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   box-sizing: border-box;
-  border-right: 1px solid #e5e7eb;
+
+  border-right: 1px solid #3e3e42;
   transition: width 0.2s ease, padding 0.2s ease;
 }
 
@@ -28,7 +33,7 @@
   gap: 1.5rem;
 }
 
-/* Logo row (now a button) */
+/* Logo row (button) */
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -38,17 +43,22 @@
   padding: 0;
   cursor: pointer;
   text-align: left;
+  color: inherit;
 }
 
 .sidebar-header:hover {
-  opacity: 0.85;
+  opacity: 0.95;
 }
 
 .logo {
   width: 40px;
   height: 40px;
   border-radius: 0.6rem;
-  /* background: #111827; */
+
+  /* slightly darker "badge" */
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,22 +68,24 @@
   width: 30px;
   height: 30px;
   display: block;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
 }
 
 .logo-text {
   font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  color: #d4d4d4;
 }
 
-/* Main nav rows (Workflow, Credentials, Executions) */
+/* Main nav rows */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 
-/* Bottom group: Upgrade, Billing, Profile */
+/* Bottom group */
 .sidebar-footer {
   display: flex;
   flex-direction: column;
@@ -85,30 +97,39 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.5rem 0.4rem;
-  border-radius: 0.5rem;
+
+  padding: 0.55rem 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #111827;
+
+  color: #cccccc;
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+
+  border: 1px solid transparent;
+  background: transparent;
+
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease,
+    border-color 0.15s ease;
 }
 
 .sidebar-item:hover {
-  background-color: #e5e7eb;
+  background: #2d2d30;
+  border-color: #3e3e42;
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
-/* Active row: soft white/gray highlight */
+/* Active row (VS Code-ish blue) */
 .sidebar-item-active {
-  background-color: #f3f4f6; /* very light gray, close to white */
-  border: 1px solid #e5e7eb; /* subtle border */
-  color: #111827; /* keep text dark */
+  background: rgba(0, 122, 204, 0.18);
+  border: 1px solid rgba(0, 122, 204, 0.55);
+  color: #ffffff;
 }
 
 .sidebar-item-active .sidebar-icon,
 .sidebar-item-active .sidebar-label {
-  color: #111827;
+  color: #ffffff;
 }
 
 .sidebar-icon {
@@ -116,6 +137,7 @@
   display: flex;
   justify-content: center;
   font-size: 1rem;
+  color: #c8c8c8;
 }
 
 .sidebar-label {
@@ -124,11 +146,11 @@
   text-overflow: ellipsis;
 }
 
-/* Make profile row look a bit special (last one at bottom) */
+/* Profile row separator */
 .sidebar-footer .sidebar-item:last-child {
   margin-top: 0.25rem;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 0.75rem;
+  border-top: 1px solid #3e3e42;
+  padding-top: 0.85rem;
 }
 
 /* Collapse behavior: hide text, center icons */

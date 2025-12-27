@@ -1,9 +1,9 @@
 import { pool } from "../database/db.js";
-import { inngest } from "../inngest/index.ts";
+import { inngest } from "../inngest/client.ts";
 
 // GET /api/workflows
 export async function getWorkflows(req, res) {
-  const userId = req.user.id; // from Better Auth middleware
+  const userId = req.user.id;
   const { status } = req.query;
 
   const params = [userId];
@@ -56,7 +56,7 @@ export async function getWorkflowById(req, res) {
     );
 
     const connectionsResult = await pool.query(
-      `SELECT id, source_node_id as source, target_node_id as target 
+      `SELECT id, source_node_id as source, target_node_id as target
        FROM connections WHERE workflow_id = $1`,
       [id]
     );
@@ -108,73 +108,98 @@ export async function updateWorkflow(req, res) {
     const { id: workflowId } = req.params;
     const userId = req.user.id;
     const { definition } = req.body;
-    
+
     console.log("🔍 Frontend sent:", {
-      nodes: definition.nodes?.map(n => ({id: n.id, type: n.type})),
-      edges: definition.edges?.map(e => ({source: e.source, target: e.target}))
+      nodes: definition.nodes?.map((n) => ({ id: n.id, type: n.type })),
+      edges: definition.edges?.map((e) => ({
+        source: e.source,
+        target: e.target,
+      })),
     });
 
-    await client.query('BEGIN');
-    
+    await client.query("BEGIN");
+
     // ✅ STEP 1: Get ALL current node IDs from DB
     const currentNodesResult = await client.query(
-      'SELECT id FROM nodes WHERE workflow_id = $1', [workflowId]
+      "SELECT id FROM nodes WHERE workflow_id = $1",
+      [workflowId]
     );
-    const currentNodeIds = new Set(currentNodesResult.rows.map(row => row.id));
-    
+    const currentNodeIds = new Set(
+      currentNodesResult.rows.map((row) => row.id)
+    );
+
     // ✅ STEP 2: Get new node IDs from frontend
     const newNodes = definition.nodes || [];
-    const newNodeIds = new Set(newNodes.map(node => node.id));
-    
+    const newNodeIds = new Set(newNodes.map((node) => node.id));
+
     // ✅ STEP 3: Delete INVALID connections (target/source nodes don't exist)
-    await client.query(`
-      DELETE FROM connections 
-      WHERE workflow_id = $1 
+    await client.query(
+      `
+      DELETE FROM connections
+      WHERE workflow_id = $1
       AND (source_node_id NOT IN ($2) OR target_node_id NOT IN ($3))
-    `, [workflowId, Array.from(newNodeIds), Array.from(newNodeIds)]);
-    
+    `,
+      [workflowId, Array.from(newNodeIds), Array.from(newNodeIds)]
+    );
+
     // ✅ STEP 4: Delete OLD nodes (not in newNodes)
     for (const nodeId of currentNodeIds) {
       if (!newNodeIds.has(nodeId)) {
-        await client.query('DELETE FROM nodes WHERE id = $1 AND workflow_id = $2', [nodeId, workflowId]);
+        await client.query(
+          "DELETE FROM nodes WHERE id = $1 AND workflow_id = $2",
+          [nodeId, workflowId]
+        );
       }
     }
 
- // ✅ STEP 5: UPSERT (NO updated_at)
-for (const node of newNodes) {
-  await client.query(`
+    // ✅ STEP 5: UPSERT (NO updated_at)
+    for (const node of newNodes) {
+      await client.query(
+        `
     INSERT INTO nodes (id, workflow_id, type, position, data)
     VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
-    ON CONFLICT (id) 
-    DO UPDATE SET 
+    ON CONFLICT (id)
+    DO UPDATE SET
       type = EXCLUDED.type,
       position = EXCLUDED.position,
       data = EXCLUDED.data
-  `, [node.id, workflowId, node.type, node.position, node.data]);
-}
+  `,
+        [node.id, workflowId, node.type, node.position, node.data]
+      );
+    }
 
-
-    
     // ✅ STEP 6: Update ALL connections (safe - only valid nodes)
-    await client.query('DELETE FROM connections WHERE workflow_id = $1', [workflowId]);
+    await client.query("DELETE FROM connections WHERE workflow_id = $1", [
+      workflowId,
+    ]);
     for (const edge of definition.edges || []) {
       // ✅ VALIDATION: Only insert if BOTH nodes exist
       if (newNodeIds.has(edge.source) && newNodeIds.has(edge.target)) {
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO connections (id, workflow_id, source_node_id, target_node_id)
           VALUES (gen_random_uuid(), $1, $2, $3)
-        `, [workflowId, edge.source, edge.target]);
+        `,
+          [workflowId, edge.source, edge.target]
+        );
       }
     }
-    
-    await client.query('UPDATE workflows SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [workflowId]);
-    await client.query('COMMIT');
-    
-    console.log("✅ Workflow saved:", { workflowId, nodeCount: newNodes.length, edgeCount: (definition.edges || []).length });
+
+    await client.query(
+      "UPDATE workflows SET updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+      [workflowId]
+    );
+    await client.query("COMMIT");
+
+    console.log("✅ Workflow saved:", {
+      workflowId,
+      nodeCount: newNodes.length,
+      edgeCount: (definition.edges || []).length,
+    });
     res.json({ success: true });
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
-    console.error('Save error:', error);
+    await client.query("ROLLBACK").catch(() => {});
+    console.error("Save error:", error);
     res.status(500).json({ error: error.message });
   } finally {
     client.release();
@@ -214,7 +239,7 @@ export const executeWorkflow = async (req, res) => {
       name: "workflows/execute.workflow",
       data: {
         workflowId: id,
-        userId: userId, // ✅ PASS REAL USER ID
+        userId: userId,
       },
     });
 

@@ -3,7 +3,6 @@ import { auth } from "../utils/auth.ts";
 
 export async function requireAuth(req, res, next) {
   try {
-    // Express gives you headers as a plain object; Better Auth can use this
     const headers = req.headers;
 
     const session = await auth.api.getSession({ headers });

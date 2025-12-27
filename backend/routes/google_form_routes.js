@@ -1,5 +1,5 @@
 import express from "express";
-import { inngest } from "../inngest/index.ts";
+import { inngest } from "../inngest/client.ts";
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ router.post("/:workflowId", async (req, res) => {
   try {
     const { workflowId } = req.params;
     const formData = req.body; // Google Form sends: { entry.0: "value", ... }
-    
+
     console.log("📋 Google Form webhook:", { workflowId, formData });
 
     // ✅ TRIGGER WORKFLOW with REAL form data
@@ -21,7 +21,7 @@ router.post("/:workflowId", async (req, res) => {
           trigger: "google-form",
           timestamp: new Date().toISOString(),
           formData: parseGoogleFormData(formData), // Clean format
-        }
+        },
       },
     });
 

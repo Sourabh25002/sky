@@ -1,0 +1,15 @@
+.iconNode {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  display: grid;
+  place-items: center;
+}
+
+.iconNodeImg {
+  width: 26px;
+  height: 26px;
+  pointer-events: none;
+}

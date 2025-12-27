@@ -21,9 +21,9 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: true, autoSignIn: true },
   trustedOrigins: ["http://localhost:3000"],
 
-  // ✅ AUTO CREATE TABLES!
+  // AUTO CREATE TABLES
   migrate: {
-    enabled: true, // ✅ Creates user/session/account tables
+    enabled: true, // Creates user/session/account tables
   },
 
   // Auto-delete Polar customer when user is deleted
