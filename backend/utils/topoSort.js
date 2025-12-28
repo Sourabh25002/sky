@@ -1,6 +1,3 @@
-// src/inngest/utils/topoSort.js
-// import topoSort from "topo-sort";
-
 const topologicalSort = (nodes, connections) => {
   if (connections.length === 0) return nodes;
 

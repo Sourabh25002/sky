@@ -135,11 +135,14 @@ export async function updateWorkflow(req, res) {
     // ✅ STEP 3: Delete INVALID connections (target/source nodes don't exist)
     await client.query(
       `
-      DELETE FROM connections
-      WHERE workflow_id = $1
-      AND (source_node_id NOT IN ($2) OR target_node_id NOT IN ($3))
-    `,
-      [workflowId, Array.from(newNodeIds), Array.from(newNodeIds)]
+        DELETE FROM connections
+        WHERE workflow_id = $1
+          AND (
+            NOT (source_node_id = ANY($2::text[]))
+            OR NOT (target_node_id = ANY($2::text[]))
+          )
+        `,
+      [workflowId, Array.from(newNodeIds)]
     );
 
     // ✅ STEP 4: Delete OLD nodes (not in newNodes)
@@ -233,7 +236,7 @@ export const executeWorkflow = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id; // ✅ From auth middleware
 
-    console.log(`🎯 User: ${userId} executing workflow: ${id}`);
+    console.log("✅ Triggering workflow execution:", id, "for user:", userId);
 
     await inngest.send({
       name: "workflows/execute.workflow",

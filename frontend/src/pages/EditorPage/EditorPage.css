@@ -10,3 +10,101 @@
   min-height: 0;
   background: #1e1e1e; /* VS Code dark */
 }
+
+.nodeContextMenu {
+  position: fixed;
+  z-index: 99999;
+
+  min-width: 160px;
+  padding: 6px;
+
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 10px;
+
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.nodeContextMenu button {
+  width: 100%;
+  padding: 10px 12px;
+
+  background: transparent;
+  color: #fff;
+
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.nodeContextMenu button:hover {
+  background: #2a2a2a;
+}
+
+.saveBtn {
+  padding: 10px 14px;
+  border-radius: 10px;
+
+  background: #007acc;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.saveBtn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.saveBtn:active {
+  transform: translateY(0px);
+  filter: brightness(0.98);
+}
+
+.saveBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(0, 122, 204, 0.35);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.topButtons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.executeBtn {
+  padding: 10px 14px;
+  border-radius: 10px;
+
+  background: #22c55e; /* green */
+  color: #08140c;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.executeBtn:hover {
+  filter: brightness(1.05);
+}
+
+.executeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

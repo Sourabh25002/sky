@@ -14,7 +14,7 @@ export async function getWorkflowWithNodesAndConnections(workflowId, userId) {
         [workflowId]
       ),
       client.query(
-        "SELECT id, source_node_id as \"fromNodeId\", target_node_id as \"toNodeId\" FROM connections WHERE workflow_id = $1",
+        'SELECT id, source_node_id as "fromNodeId", target_node_id as "toNodeId" FROM connections WHERE workflow_id = $1',
         [workflowId]
       ),
     ]);
@@ -31,23 +31,23 @@ export async function getWorkflowWithNodesAndConnections(workflowId, userId) {
     }
 
     // DEBUG: Log raw data from database
-    console.log("🔍 Raw nodes from DB:");
-    nodesRes.rows.forEach((node, index) => {
-      console.log(`  Node ${index}:`, {
-        id: node.id,
-        type: node.type,
-        data: node.data,
-        endpoint: node.data?.endpoint,
-        method: node.data?.method
-      });
-    });
+    // console.log("🔍 Raw nodes from DB:");
+    // nodesRes.rows.forEach((node, index) => {
+    //   console.log(`  Node ${index}:`, {
+    //     id: node.id,
+    //     type: node.type,
+    //     data: node.data,
+    //     endpoint: node.data?.endpoint,
+    //     method: node.data?.method
+    //   });
+    // });
 
-    console.log("✅ Clean data:", {
-      workflowId: workflowRes.rows[0].id,
-      nodeCount: nodesRes.rowCount,
-      connectionCount: connectionsRes.rowCount,
-      sampleNodeData: nodesRes.rowCount > 0 ? nodesRes.rows[0].data : null
-    });
+    // console.log("✅ Clean data:", {
+    //   workflowId: workflowRes.rows[0].id,
+    //   nodeCount: nodesRes.rowCount,
+    //   connectionCount: connectionsRes.rowCount,
+    //   sampleNodeData: nodesRes.rowCount > 0 ? nodesRes.rows[0].data : null
+    // });
 
     return {
       id: workflowRes.rows[0].id,

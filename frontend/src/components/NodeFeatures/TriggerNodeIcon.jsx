@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
-import "./TriggerNode.css";
+import "./TriggerNodeIcon.css";
 
-export default function TriggerNode({ data }) {
+export default function TriggerNodeIcon({ data }) {
   return (
     <div className="triggerNode">
       <Handle
