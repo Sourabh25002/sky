@@ -65,16 +65,15 @@ function PdfReaderSettings({ node, updateConfig }) {
 
   return (
     <>
-      <label>PDF</label>
+      <label>PDF URL</label>
       <input
-        type="file"
-        accept="application/pdf"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          updateConfig({ fileName: file?.name ?? "" });
-        }}
+        type="url"
+        placeholder="https://example.com/file.pdf"
+        value={cfg.fileUrl || ""}
+        onChange={(e) => updateConfig({ fileUrl: e.target.value })}
       />
-      <div>Selected: {cfg.fileName || "None"}</div>
+
+      <div>Selected: {cfg.fileUrl ? cfg.fileUrl : "None"}</div>
     </>
   );
 }

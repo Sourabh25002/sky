@@ -1,25 +1,26 @@
 const topologicalSort = (nodes, connections) => {
   if (connections.length === 0) return nodes;
 
-  // Build graph: nodeId -> [dependencies]
   const graph = {};
   const indegree = {};
 
-  // Initialize all nodes
   nodes.forEach((node) => {
     graph[node.id] = [];
     indegree[node.id] = 0;
   });
 
-  // Build edges + indegrees
   connections.forEach((c) => {
-    if (graph[c.fromNodeId] && graph[c.toNodeId]) {
-      graph[c.fromNodeId].push(c.toNodeId);
-      indegree[c.toNodeId]++;
+    // IMPORTANT: adjust these keys to match your edge shape:
+    // if your edges are { source, target }, use c.source/c.target
+    const from = c.fromNodeId ?? c.source;
+    const to = c.toNodeId ?? c.target;
+
+    if (graph[from] && graph[to]) {
+      graph[from].push(to);
+      indegree[to]++;
     }
   });
 
-  // Kahn's Algorithm (BFS)
   const queue = [];
   Object.keys(indegree).forEach((nodeId) => {
     if (indegree[nodeId] === 0) queue.push(nodeId);
@@ -32,18 +33,17 @@ const topologicalSort = (nodes, connections) => {
 
     graph[nodeId].forEach((neighbor) => {
       indegree[neighbor]--;
-      if (indegree[neighbor] === 0) {
-        queue.push(neighbor);
-      }
+      if (indegree[neighbor] === 0) queue.push(neighbor);
     });
   }
 
-  // Check for cycles
   if (sortedNodeIds.length !== nodes.length) {
     throw new Error("Workflow contains cyclic dependencies");
   }
 
-  return nodes.filter((node) => sortedNodeIds.includes(node.id));
+  // ✅ preserve topo order
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
+  return sortedNodeIds.map((id) => nodeById.get(id)).filter(Boolean);
 };
 
 export { topologicalSort };

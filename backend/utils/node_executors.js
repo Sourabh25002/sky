@@ -43,23 +43,30 @@ export const startExecutor = async (node, context) => {
 // PDF node executor
 export const pdfExecutor = async (node, context) => {
   const cfg = node?.data?.config ?? {};
-  const fileName = cfg.fileName;
-  if (!fileName)
-    throw new Error(`PDF node "${node.id}" missing data.config.fileName`);
+  const fileUrl = cfg.fileUrl;
+  if (!fileUrl)
+    throw new Error(`PDF node "${node.id}" missing data.config.fileUrl`);
 
-  const filePath = path.join(process.cwd(), "uploads", fileName);
-  const pdfBuffer = await fs.readFile(filePath);
+  const res = await fetch(fileUrl);
+  if (!res.ok)
+    throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
+
+  const arr = await res.arrayBuffer();
+  const pdfBuffer = Buffer.from(arr);
   const parsed = await pdfParse(pdfBuffer);
 
+  const fullText = parsed.text || "";
+  const preview = safeSlice(fullText, 4000); // keep small
+
   const result = {
-    fileName,
-    filePath,
+    fileUrl,
     pages: parsed.numpages,
-    text: parsed.text,
-    textPreview: safeSlice(parsed.text, 300),
+    textPreview: preview,
+    textLength: fullText.length,
     timestamp: new Date().toISOString(),
   };
 
+  // ✅ DON'T put fullText into context
   return { ...context, pdf: result, [`${node.id}_pdf`]: result };
 };
 
@@ -68,14 +75,23 @@ export const geminiExecutor = async (node, context) => {
   const cfg = node?.data?.config ?? {};
   const systemPrompt = cfg.systemPrompt ?? "You are a helpful assistant.";
   const userPrompt = cfg.prompt;
-  if (!userPrompt)
-    throw new Error(`Gemini node "${node.id}" missing data.config.prompt`);
 
-  const fullPrompt = applyTemplate(userPrompt, {
-    ...context,
-    "pdf.text": context.pdf?.text ?? "",
-    "pdf.textPreview": context.pdf?.textPreview ?? "",
-  });
+  if (!userPrompt) {
+    throw new Error(`Gemini node "${node.id}" missing data.config.prompt`);
+  }
+
+  const pdfText = context.pdf?.textPreview || context.pdf?.text || "";
+  if (!pdfText) {
+    throw new Error(
+      `Gemini node "${node.id}" did not receive any PDF text from previous step`
+    );
+  }
+
+  const fullPrompt = `${userPrompt}
+
+--- PDF CONTENT ---
+${pdfText}
+`;
 
   const model = google("gemini-2.5-flash");
   const { text } = await generateText({
