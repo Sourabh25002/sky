@@ -3,19 +3,6 @@ import { pool } from "./db.js";
 export async function createWorkflowsTable() {
   const client = await pool.connect();
   try {
-    // Verify user table exists first
-    const userCheck = await client.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_name = 'user' AND table_schema = 'public'
-    `);
-
-    if (userCheck.rowCount === 0) {
-      throw new Error(
-        "Better Auth 'user' table not found. Run Better Auth migrations first."
-      );
-    }
-
     await client.query(`
       CREATE TABLE IF NOT EXISTS workflows (
         id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -37,7 +24,7 @@ export async function createWorkflowsTable() {
       )
     `);
 
-    // Indexes for performance
+    // Indexes
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_workflows_user_id ON workflows(user_id)
     `);
@@ -50,9 +37,7 @@ export async function createWorkflowsTable() {
       CREATE INDEX IF NOT EXISTS idx_workflows_status ON workflows(status)
     `);
 
-    console.log(
-      "✅ Workflows table created with all fields and FK to Better Auth 'user' table"
-    );
+    console.log("Workflows table created");
   } finally {
     client.release();
   }
@@ -65,11 +50,11 @@ export async function createNodesTable() {
       CREATE TABLE IF NOT EXISTS nodes (
         id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
         workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
-        
+
         type VARCHAR(100) NOT NULL, -- 'trigger', 'openai', 'slack', etc.
         position JSONB NOT NULL, -- {x: 100, y: 200}
         data JSONB NOT NULL DEFAULT '{}'::jsonb, -- node config
-        
+
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -78,7 +63,7 @@ export async function createNodesTable() {
       `CREATE INDEX IF NOT EXISTS idx_nodes_workflow_id ON nodes(workflow_id)`
     );
 
-    console.log("✅ Nodes table created");
+    console.log("Nodes table created");
   } finally {
     client.release();
   }
@@ -91,10 +76,10 @@ export async function createConnectionsTable() {
       CREATE TABLE IF NOT EXISTS connections (
         id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
         workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
-        
+
         source_node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
         target_node_id TEXT NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
-        
+
         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -106,7 +91,7 @@ export async function createConnectionsTable() {
       `CREATE INDEX IF NOT EXISTS idx_connections_source ON connections(source_node_id)`
     );
 
-    console.log("✅ Connections table created");
+    console.log("Connections table created");
   } finally {
     client.release();
   }

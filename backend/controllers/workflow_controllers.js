@@ -49,7 +49,7 @@ export async function getWorkflowById(req, res) {
 
     const workflow = rows[0];
 
-    // ✅ NEW: Load nodes + connections for React Flow
+    // Load nodes + connections for React Flow
     const nodesResult = await pool.query(
       `SELECT id, type, position, data FROM nodes WHERE workflow_id = $1`,
       [id]
@@ -109,17 +109,17 @@ export async function updateWorkflow(req, res) {
     const userId = req.user.id;
     const { definition } = req.body;
 
-    console.log("🔍 Frontend sent:", {
-      nodes: definition.nodes?.map((n) => ({ id: n.id, type: n.type })),
-      edges: definition.edges?.map((e) => ({
-        source: e.source,
-        target: e.target,
-      })),
-    });
+    // console.log("🔍 Frontend sent:", {
+    //   nodes: definition.nodes?.map((n) => ({ id: n.id, type: n.type })),
+    //   edges: definition.edges?.map((e) => ({
+    //     source: e.source,
+    //     target: e.target,
+    //   })),
+    // });
 
     await client.query("BEGIN");
 
-    // ✅ STEP 1: Get ALL current node IDs from DB
+    // Get all current node IDs from DB
     const currentNodesResult = await client.query(
       "SELECT id FROM nodes WHERE workflow_id = $1",
       [workflowId]
@@ -128,11 +128,11 @@ export async function updateWorkflow(req, res) {
       currentNodesResult.rows.map((row) => row.id)
     );
 
-    // ✅ STEP 2: Get new node IDs from frontend
+    // Get new node IDs from frontend
     const newNodes = definition.nodes || [];
     const newNodeIds = new Set(newNodes.map((node) => node.id));
 
-    // ✅ STEP 3: Delete INVALID connections (target/source nodes don't exist)
+    // Delete INVALID connections (target/source nodes don't exist)
     await client.query(
       `
         DELETE FROM connections
@@ -145,7 +145,7 @@ export async function updateWorkflow(req, res) {
       [workflowId, Array.from(newNodeIds)]
     );
 
-    // ✅ STEP 4: Delete OLD nodes (not in newNodes)
+    // Delete OLD nodes (not in newNodes)
     for (const nodeId of currentNodeIds) {
       if (!newNodeIds.has(nodeId)) {
         await client.query(
@@ -155,28 +155,28 @@ export async function updateWorkflow(req, res) {
       }
     }
 
-    // ✅ STEP 5: UPSERT (NO updated_at)
+    // UPSERT (NO updated_at)
     for (const node of newNodes) {
       await client.query(
         `
-    INSERT INTO nodes (id, workflow_id, type, position, data)
-    VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
-    ON CONFLICT (id)
-    DO UPDATE SET
-      type = EXCLUDED.type,
-      position = EXCLUDED.position,
-      data = EXCLUDED.data
-  `,
+          INSERT INTO nodes (id, workflow_id, type, position, data)
+          VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
+          ON CONFLICT (id)
+          DO UPDATE SET
+            type = EXCLUDED.type,
+            position = EXCLUDED.position,
+            data = EXCLUDED.data
+        `,
         [node.id, workflowId, node.type, node.position, node.data]
       );
     }
 
-    // ✅ STEP 6: Update ALL connections (safe - only valid nodes)
+    // Update ALL connections (safe - only valid nodes)
     await client.query("DELETE FROM connections WHERE workflow_id = $1", [
       workflowId,
     ]);
     for (const edge of definition.edges || []) {
-      // ✅ VALIDATION: Only insert if BOTH nodes exist
+      // VALIDATION: Only insert if BOTH nodes exist
       if (newNodeIds.has(edge.source) && newNodeIds.has(edge.target)) {
         await client.query(
           `
@@ -194,7 +194,7 @@ export async function updateWorkflow(req, res) {
     );
     await client.query("COMMIT");
 
-    console.log("✅ Workflow saved:", {
+    console.log("Workflow saved:", {
       workflowId,
       nodeCount: newNodes.length,
       edgeCount: (definition.edges || []).length,
@@ -234,9 +234,10 @@ export async function deleteWorkflow(req, res) {
 export const executeWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id; // ✅ From auth middleware
+    const userId = req.user.id;
+    middleware;
 
-    console.log("✅ Triggering workflow execution:", id, "for user:", userId);
+    console.log("Triggering workflow execution:", id, "for user:", userId);
 
     await inngest.send({
       name: "workflows/execute.workflow",

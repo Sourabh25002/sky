@@ -1,4 +1,3 @@
-// middleware/auth.js
 import { auth } from "../utils/auth.ts";
 
 export async function requireAuth(req, res, next) {

@@ -12,7 +12,6 @@ import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
 import workflowsRouter from "./routes/workflow_routes.js";
 import googleFormRouter from "./routes/google_form_routes.js";
-// import { createNodesTable } from "./database/schemas.js";
 
 dotenv.config();
 const app = express();
@@ -49,7 +48,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to sky backend!");
 });
 
-// APIs
+// Custom Routes
 app.use("/api/workflows", workflowsRouter);
 app.use("/api/trigger/google-form", googleFormRouter);
 
@@ -61,7 +60,6 @@ if (!PORT) {
 }
 
 await checkDatabaseConnection();
-// await createWorkflowsTable();
 
 app.listen(PORT, () => {
   console.log(`Server is running on PORT:${PORT}`);

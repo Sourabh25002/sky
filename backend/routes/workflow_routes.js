@@ -7,7 +7,7 @@ import {
   deleteWorkflow,
   executeWorkflow,
 } from "../controllers/workflow_controllers.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/requireVerifiedUser.js";
 
 const router = express.Router();
 

@@ -1,0 +1,27 @@
+# Better Auth (Node Backend)
+
+Better Auth is used in this Node.js backend to manage authentication, sessions, and account/provider linking. As part of its default setup, it creates the required database tables and indexes to store users, active sessions, linked login providers, and verification tokens.
+
+# Default tables created
+
+1) user
+Stores the primary user record (identity/profile and verification state).
+
+2) session
+Stores active login sessions (token-based sessions with expiry) for users.
+
+3) account
+Stores linked login accounts/providers for a user (for example OAuth providers and/or credentials).
+
+4) verification
+Stores short-lived verification entries used for flows like email verification, password resets, and magic links/OTP (depending on enabled features).
+
+# Default indexes created
+
+- Sessions lookup by userId
+- Accounts lookup by userId
+- Verification lookup by identifier (commonly email)
+
+# Relationships and cleanup
+
+Sessions and accounts are linked to users through foreign keys. When a user is deleted, related sessions and accounts are automatically removed due to cascade delete behavior.

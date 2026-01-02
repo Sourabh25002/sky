@@ -1,0 +1,37 @@
+# Database setup (PostgreSQL)
+
+This backend uses PostgreSQL via the pg package (Pool-based connection pooling). Environment variables are loaded using dotenv, and the database password is read from process.env.PASSWORD.
+
+A shared pool is exported so the rest of the backend can reuse a single connection pool instead of opening new connections for every query.
+
+# Connection and health check
+
+The db module exports:
+- pool: the shared PostgreSQL connection pool
+- checkDatabaseConnection(): connects to PostgreSQL to verify connectivity and logs a success/error message
+
+This function can be used during server startup to confirm the database is reachable.
+
+# Application tables (built on top of Better Auth)
+
+In addition to Better Auth tables, this backend creates three core tables for the workflow system:
+
+1) workflows
+Stores user-owned workflows. Each workflow belongs to a user from Better Auth and is linked using a foreign key to the Better Auth user table. If a user is deleted, their workflows are automatically deleted (cascade behavior).
+
+Indexes are created to speed up common queries such as filtering by user, sorting by creation time, and filtering by status.
+
+2) nodes
+Stores workflow nodes (steps) for each workflow (for example trigger/action nodes). Nodes belong to a workflow, and deleting a workflow deletes its nodes automatically.
+
+An index is created for faster lookup of nodes by workflow.
+
+3) connections
+Stores edges/connections between nodes inside a workflow. Connections belong to a workflow and reference both the source node and target node. Deleting a workflow deletes its connections, and deleting a node deletes related connections (cascade behavior).
+
+Indexes are created to speed up connection lookups by workflow and by source node.
+
+# Better Auth dependency
+
+Before creating the workflows table, the code checks that the Better Auth "user" table exists. If it is missing, table creation fails with an error message asking to run Better Auth migrations first.
+This ensures our workflow system always attaches data to authenticated users.
