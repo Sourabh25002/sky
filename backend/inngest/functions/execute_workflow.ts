@@ -9,21 +9,23 @@ export const executeWorkflow = inngest.createFunction(
   async ({ event, step }) => {
     const { workflowId, userId } = event.data;
 
-    // STEP 1: Fetch workflow data
     const workflow = await step.run("prepare-workflow", async () => {
       console.log("✅ Loaded workflow data");
       return await getWorkflowWithNodesAndConnections(workflowId, userId);
     });
 
-    // STEP 2: Topological sort
     const sortedNodes = await step.run("topological-sort", async () => {
       console.log("✅ Nodes topologically sorted");
       return topologicalSort(workflow.nodes, workflow.connections);
     });
 
-    // STEP 3: Execute nodes in order
-    let context = {
+    // Initial execution context
+    let context: any = {
       initialData: event.data,
+      trigger: {
+        type: event.data?.googleForm ? "google_form" : "manual",
+        payload: event.data?.googleForm ?? null,
+      },
     };
 
     for (const node of sortedNodes) {
@@ -31,7 +33,7 @@ export const executeWorkflow = inngest.createFunction(
       const executor = getExecutor(nodeType);
 
       context = await step.run(`node:${node.id}`, async () => {
-        return await executor(node, context); // ✅ don’t pass step
+        return await executor(node, context);
       });
     }
 

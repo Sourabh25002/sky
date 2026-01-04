@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import "./NodeIcon.css";
 
-export default function IconOnlyNode({ data }) {
+export default function NodeIcon({ data }) {
   return (
     <div className="iconNode">
       {/* add handles so it can connect */}

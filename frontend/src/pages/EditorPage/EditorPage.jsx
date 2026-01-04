@@ -18,38 +18,43 @@ import "@xyflow/react/dist/style.css";
 
 import EditorSidebar from "../../components/EditorSidebar/Sidebar";
 import { NODE_TEMPLATES } from "../../utils/nodeCatalog";
-import IconOnlyNode from "../../components/NodeFeatures/NodeIcon";
+import NodeIcon from "../../components/NodeFeatures/NodeIcon";
 import TriggerNodeIcon from "../../components/NodeFeatures/TriggerNodeIcon";
 import { NodeSettings } from "../../components/NodeFeatures/NodeSettings";
 
+// Create unique IDs for nodes and edges
 const makeNodeId = (originalType) => `${originalType}-${Date.now()}`;
 const makeEdgeId = (source, target) => `${source}-${target}-${Date.now()}`;
 
+// Main Editor Canvas component
 function EditorCanvas() {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [activeNodeId, setActiveNodeId] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [nodeMenu, setNodeMenu] = useState(null);
+  const [hasTriggerNode, setHasTriggerNode] = useState(false);
+  const { workflowId } = useParams();
+
+  // React Flow hooks
   const { screenToFlowPosition, getNodes, getEdges } = useReactFlow();
 
+  // Define custom node types
   const nodeTypes = useMemo(
-    () => ({ trigger: TriggerNodeIcon, icon: IconOnlyNode }),
+    () => ({ trigger: TriggerNodeIcon, icon: NodeIcon }),
     []
   );
 
+  // Map of node templates by type for easy access
   const templateByType = useMemo(
     () => new Map(NODE_TEMPLATES.map((t) => [t.type, t])),
     []
   );
 
+  // Helper to check if a node type is a trigger
   const isTrigger = useCallback((t) => t.startsWith("trigger."), []);
 
-  const { workflowId } = useParams();
-
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
-  const [activeNodeId, setActiveNodeId] = useState(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [nodeMenu, setNodeMenu] = useState(null);
-  const [hasTriggerNode, setHasTriggerNode] = useState(false);
-
+  // Function to load workflow data from the database
   const loadFromDb = useCallback(async () => {
     if (!workflowId) return;
 
@@ -78,6 +83,7 @@ function EditorCanvas() {
     loadFromDb().catch(console.error);
   }, [loadFromDb]);
 
+  // Handle new connections between nodes
   const onConnect = useCallback(
     (params) =>
       setEdges((eds) =>
@@ -92,6 +98,7 @@ function EditorCanvas() {
     [setEdges]
   );
 
+  // Handle node drop onto the canvas
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
@@ -107,7 +114,7 @@ function EditorCanvas() {
       const tpl = templateByType.get(droppedType);
 
       const newNode = {
-        id: makeNodeId(droppedType), // ✅ like old editor style
+        id: makeNodeId(droppedType),
         type: isTrigger(droppedType) ? "trigger" : "icon",
         position,
         data: {
@@ -123,21 +130,25 @@ function EditorCanvas() {
     [screenToFlowPosition, templateByType, isTrigger, setNodes]
   );
 
+  // Handle drag over event
   const onDragOver = useCallback((event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   }, []);
 
+  // Handle node click to open settings dialog
   const onNodeClick = useCallback((_event, node) => {
     setActiveNodeId(node.id);
     setIsDialogOpen(true);
   }, []);
 
+  // Handle right-click on node to open context menu
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault();
     setNodeMenu({ nodeId: node.id, x: event.clientX, y: event.clientY });
   }, []);
 
+  // Validate connections between nodes
   const isValidConnection = useCallback(
     (connection) => {
       const ns = getNodes();
@@ -161,6 +172,7 @@ function EditorCanvas() {
     [getNodes, getEdges]
   );
 
+  // Delete a node and its connected edges
   const deleteNodeAndEdges = useCallback(
     (nodeId) => {
       setNodes((nds) => nds.filter((n) => n.id !== nodeId));
@@ -175,6 +187,7 @@ function EditorCanvas() {
     [setNodes, setEdges]
   );
 
+  // Handle double-click on edge to delete it
   const onEdgeDoubleClick = useCallback(
     (_event, edge) => {
       setEdges((eds) => eds.filter((e) => e.id !== edge.id));
@@ -182,6 +195,7 @@ function EditorCanvas() {
     [setEdges]
   );
 
+  // Save the current workflow to the database
   const onSave = useCallback(async () => {
     if (!workflowId) return;
 
@@ -197,10 +211,10 @@ function EditorCanvas() {
 
     if (!res.ok) throw new Error("Save failed");
 
-    // ✅ reload so UI matches DB exactly
     await loadFromDb();
   }, [workflowId, nodes, edges, loadFromDb]);
 
+  // Check for presence of trigger nodes
   useEffect(() => {
     const has = nodes.some(
       (n) =>
@@ -209,6 +223,7 @@ function EditorCanvas() {
     setHasTriggerNode(has);
   }, [nodes]);
 
+  // Execute the workflow
   const onExecute = useCallback(async () => {
     if (!workflowId) return;
 

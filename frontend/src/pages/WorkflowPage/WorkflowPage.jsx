@@ -18,7 +18,6 @@ const WorkflowPage = () => {
       const data = await res.json();
       setWorkflows(data);
 
-      // If we don't have a selected workflow, select first one
       if (!selectedId && data.length > 0) {
         const firstId = data[0].id;
         setSelectedId(firstId);
@@ -50,7 +49,6 @@ const WorkflowPage = () => {
 
   useEffect(() => {
     fetchWorkflows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSelect(id) {

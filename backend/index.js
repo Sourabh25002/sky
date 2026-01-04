@@ -11,7 +11,7 @@ import { functions } from "./inngest/index.ts";
 import { auth } from "./utils/auth.ts";
 import { checkDatabaseConnection } from "./database/db.js";
 import workflowsRouter from "./routes/workflow_routes.js";
-import googleFormRouter from "./routes/google_form_routes.js";
+import triggerRoutes from "./routes/triggerRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -50,7 +50,7 @@ app.get("/", (req, res) => {
 
 // Custom Routes
 app.use("/api/workflows", workflowsRouter);
-app.use("/api/trigger/google-form", googleFormRouter);
+app.use("/api", triggerRoutes);
 
 // Server and Database Connection
 const PORT = process.env.PORT;

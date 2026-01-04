@@ -235,7 +235,7 @@ export const executeWorkflow = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    middleware;
+    // middleware;
 
     console.log("Triggering workflow execution:", id, "for user:", userId);
 

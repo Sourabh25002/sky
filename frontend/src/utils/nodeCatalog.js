@@ -9,6 +9,7 @@ export const TRIGGERS = [
     type: "trigger.googleForm",
     label: "Google Form Trigger",
     icon: "/googleform.svg",
+    defaults: { formId: "", secret: "", webhookBaseUrl: "" },
   },
 ];
 
