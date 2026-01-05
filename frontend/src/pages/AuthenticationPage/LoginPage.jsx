@@ -29,7 +29,6 @@ const Login = () => {
         },
 
         onSuccess: async () => {
-          // 🔥 ensure session is synced before routing
           await refetch();
           setLoading(false);
           navigate("/");

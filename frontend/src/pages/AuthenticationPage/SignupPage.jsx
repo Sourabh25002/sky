@@ -34,7 +34,7 @@ const Signup = () => {
 
         onSuccess: async () => {
           setLoading(false);
-          await refetch(); // ⏳ wait for session sync
+          await refetch();
           navigate("/");
         },
 

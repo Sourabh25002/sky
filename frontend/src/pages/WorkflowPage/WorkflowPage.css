@@ -6,9 +6,9 @@
    accent:    #007acc
 */
 .workflow-page {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100%;
   padding: 16px;
   box-sizing: border-box;
 
@@ -21,6 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
@@ -30,7 +31,7 @@
   color: #d4d4d4;
 }
 
-/* Buttons */
+/* New workflow button */
 .workflow-new-btn {
   padding: 8px 12px;
   border-radius: 6px;
@@ -47,112 +48,57 @@
   transform: translateY(-1px);
 }
 
-.workflow-main {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 16px;
-  height: calc(100% - 48px);
-  min-height: 0;
-}
-
-/* Left list panel */
-.workflow-list-panel {
-  border-right: 1px solid #3e3e42;
-  padding-right: 8px;
-  overflow: hidden;
-}
-
+/* Loading / empty */
 .workflow-loading,
-.workflow-empty,
-.workflow-editor-empty {
-  font-size: 0.9rem;
+.workflow-empty {
+  font-size: 0.95rem;
   color: #9da0a6;
-  padding: 8px;
+  padding: 10px 4px;
 }
 
-.workflow-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  overflow-y: auto;
+/* Cards grid */
+.workflow-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  align-items: stretch;
 }
 
-/* List items */
-.workflow-list-item {
-  padding: 10px 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  cursor: pointer;
-
+/* Single card */
+.workflow-card {
   background: #252526;
-  border: 1px solid transparent;
+  border: 1px solid #3e3e42;
+  border-radius: 12px;
+  padding: 12px;
 
-  transition: background 0.15s ease, border-color 0.15s ease,
-    transform 0.1s ease;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  transition: transform 0.12s ease, border-color 0.15s ease,
+    background 0.15s ease;
 }
 
-.workflow-list-item:hover {
+.workflow-card:hover {
   background: #2d2d30;
-  transform: translateY(-1px);
+  border-color: rgba(0, 122, 204, 0.55);
+  transform: translateY(-2px);
 }
 
-.workflow-list-item-active {
-  background: #2d2d30;
-  border-color: #007acc;
-}
-
-/* Item top row */
-.workflow-list-item-top {
+/* Card top row (name + open button) */
+.workflow-card-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
-.workflow-list-name {
+.workflow-card-name {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #d4d4d4;
-}
 
-.workflow-list-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.workflow-list-status {
-  font-size: 0.75rem;
-  padding: 3px 8px;
-  border-radius: 999px;
-
-  background: #1e1e1e;
-  border: 1px solid #3e3e42;
-  color: #c8c8c8;
-}
-
-/* Meta row */
-.workflow-list-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
-  font-size: 0.75rem;
-  color: #9da0a6;
-}
-
-/* Delete */
-.workflow-list-delete {
-  border: none;
-  background: transparent;
-  color: #f14c4c; /* VS Code-ish red */
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.workflow-list-delete:hover {
-  text-decoration: underline;
+  /* prevent long names from breaking layout */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Open editor button */
@@ -161,10 +107,10 @@
   background: #2d2d30;
   color: #d4d4d4;
 
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 
@@ -178,138 +124,63 @@
   transform: translateY(-1px);
 }
 
-/* Right editor panel */
-.workflow-editor-panel {
-  padding-left: 8px;
+/* Card bottom row (delete aligned right) */
+.workflow-card-bottom {
   display: flex;
-  flex-direction: column;
-  min-width: 0;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
-/* Editor header */
-.workflow-editor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
+/* Delete button */
+.workflow-list-delete {
+  appearance: none;
+  border: 1px solid rgba(241, 76, 76, 0.65);
+  background: rgba(241, 76, 76, 0.08);
+  color: #ff6b6b;
 
-.workflow-editor-header h2 {
-  font-size: 1.1rem;
-  margin: 0;
-  color: #d4d4d4;
-}
+  padding: 6px 10px;
+  border-radius: 999px;
 
-.workflow-save-btn {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #007acc;
-  background: transparent;
-  color: #d4d4d4;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
+
   transition: background 0.15s ease, border-color 0.15s ease,
-    transform 0.1s ease;
+    transform 0.1s ease, filter 0.15s ease;
 }
 
-.workflow-save-btn[disabled] {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.workflow-save-btn:hover:not([disabled]) {
-  background: rgba(0, 122, 204, 0.15);
-  border-color: #007acc;
+.workflow-list-delete:hover {
+  background: rgba(241, 76, 76, 0.16);
+  border-color: rgba(241, 76, 76, 0.95);
+  filter: brightness(1.05);
   transform: translateY(-1px);
 }
 
-/* Form */
-.workflow-editor-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-  padding-right: 4px;
+.workflow-list-delete:active {
+  transform: translateY(0px);
 }
 
-.workflow-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.workflow-list-delete:focus-visible {
+  outline: 3px solid rgba(241, 76, 76, 0.35);
+  outline-offset: 2px;
 }
 
-.workflow-field-label {
-  font-size: 0.8rem;
-  color: #9da0a6;
-}
-
-/* Inputs */
-.workflow-input,
-.workflow-select,
-.workflow-textarea,
-.workflow-definition {
-  font-size: 0.9rem;
-  padding: 9px 10px;
-  border-radius: 6px;
-
-  background: #252526;
-  color: #d4d4d4;
-
-  border: 1px solid #3e3e42;
-  outline: none;
-
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.workflow-input::placeholder,
-.workflow-textarea::placeholder,
-.workflow-definition::placeholder {
-  color: #808080;
-}
-
-/* Focus ring like VS Code accent */
-.workflow-input:focus,
-.workflow-select:focus,
-.workflow-textarea:focus,
-.workflow-definition:focus {
-  border-color: #007acc;
-  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
-}
-
-.workflow-textarea {
-  min-height: 70px;
-  resize: vertical;
-}
-
-.workflow-definition {
-  min-height: 200px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-  resize: vertical;
-}
-
-.workflow-help-text {
-  font-size: 0.75rem;
-  color: #9da0a6;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .workflow-main {
-    grid-template-columns: 1fr;
-    height: auto;
+/* Small screens */
+@media (max-width: 420px) {
+  .workflow-page {
+    padding: 12px;
   }
 
-  .workflow-list-panel {
-    border-right: none;
-    border-bottom: 1px solid #3e3e42;
-    padding-right: 0;
-    padding-bottom: 8px;
+  .workflow-header h1 {
+    font-size: 1.4rem;
   }
 
-  .workflow-editor-panel {
-    padding-left: 0;
-    padding-top: 8px;
+  .workflow-card {
+    padding: 10px;
+  }
+
+  .workflow-open-btn {
+    padding: 6px 8px;
+    font-size: 0.78rem;
   }
 }

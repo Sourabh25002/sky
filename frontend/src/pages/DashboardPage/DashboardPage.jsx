@@ -7,7 +7,7 @@ const DashboardLayout = () => {
     <div className="dashboard-layout">
       <Sidebar />
       <main className="dashboard-content">
-        {/* This is where Workflow / Credentials / Executions will appear */}
+        {/* This is where Workflow, Credentials, Executions etc. pages will be displayed */}
         <Outlet />
       </main>
     </div>
