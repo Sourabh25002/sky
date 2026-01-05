@@ -1,3 +1,5 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import { betterAuth } from "better-auth";
 import { pool } from "../database/db.js";
 import {
@@ -9,24 +11,32 @@ import {
 } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 
+const trustedOrigins = process.env.CORS_ORIGIN
+  ? [process.env.CORS_ORIGIN]
+  : undefined;
+
+const checkoutSuccessUrl = process.env.CORS_ORIGIN;
+
+// POLAR CLIENT
 const polarClient = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN!,
   server: "sandbox", // or 'production'
 });
 
+// AUTH CONFIGURATION
 export const auth = betterAuth({
   database: pool,
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL!,
   emailAndPassword: { enabled: true, autoSignIn: true },
-  trustedOrigins: ["http://localhost:3000"],
+  trustedOrigins,
 
   // AUTO CREATE TABLES
   migrate: {
     enabled: true, // Creates user/session/account tables
   },
 
-  // Auto-delete Polar customer when user is deleted
+  // USER DELETION HOOK
   user: {
     deleteUser: {
       enabled: true,
@@ -47,7 +57,7 @@ export const auth = betterAuth({
           products: [
             { productId: "17ee1f9d-869a-4684-b86a-64f19443d31c", slug: "pro" },
           ],
-          successUrl: "http://localhost:3000/",
+          successUrl: checkoutSuccessUrl,
           authenticatedUsersOnly: true,
         }),
         portal(),

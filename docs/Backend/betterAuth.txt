@@ -1,4 +1,4 @@
-# Better Auth (Node Backend)
+## Better Auth (Node Backend)
 
 Better Auth is used in this Node.js backend to manage authentication, sessions, and account/provider linking. As part of its default setup, it creates the required database tables and indexes to store users, active sessions, linked login providers, and verification tokens.
 
