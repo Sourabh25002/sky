@@ -1,0 +1,13 @@
+1. Moving Functions Outside (The "Permanent Tool" Rule)
+    -The Action: You moved onDragStart out of the component scope and into the module scope (the top of the file).
+
+    -The Logic: If a function is defined inside, React creates a brand new version of it every time the component renders (wasting CPU). By moving it outside, it is created once when the app starts and never again.
+
+    -The Memory: Think of it like a Street Lamp. It sits permanently on the street (the file). Your house (the component) can use it whenever it needs to, but tearing down the house doesn't destroy the lamp. It’s efficient because you don't have to rebuild the lamp every time you come home.
+
+2. Wrapping in memo (The "Security Guard" Rule)
+    -The Action: You wrapped the EditorSidebar function in memo(...).
+
+    -The Logic: By default, if a Parent component updates, all its Children update too. memo changes this. It checks the inputs (Props) first. If the props haven't changed, it blocks the update.
+
+    -The Memory: Think of memo as a Bouncer. When the Parent component says "Hey, everyone re-render!", the Bouncer steps in and says, "Wait, EditorSidebar has no new instructions (props are the same). It stays exactly as it is." This saves the browser from repainting a heavy sidebar unnecessarily.

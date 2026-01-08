@@ -1,4 +1,3 @@
-import React from "react";
 import { authClient } from "../utils/auth";
 
 export function UpgradeButton() {
