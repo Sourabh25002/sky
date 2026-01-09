@@ -1,24 +1,7 @@
 import { useMemo, useState } from "react";
 import "./NodeSettings.css";
 
-function randomSecret(len = 40) {
-  const chars =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let out = "";
-  for (let i = 0; i < len; i++)
-    out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
-}
-
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
+// Gemini Node Settings
 function GeminiSettings({ node, updateConfig }) {
   const cfg = node.data.config ?? {};
 
@@ -39,6 +22,7 @@ function GeminiSettings({ node, updateConfig }) {
   );
 }
 
+// OpenAI Node Settings
 function OpenAISettings({ node, updateConfig }) {
   const cfg = node.data.config ?? {};
 
@@ -59,6 +43,7 @@ function OpenAISettings({ node, updateConfig }) {
   );
 }
 
+// Anthropic Node Settings
 function AnthropicSettings({ node, updateConfig }) {
   const cfg = node.data.config ?? {};
 
@@ -79,6 +64,7 @@ function AnthropicSettings({ node, updateConfig }) {
   );
 }
 
+// PDF Reader Node Settings
 function PdfReaderSettings({ node, updateConfig }) {
   const cfg = node.data.config ?? {};
 
@@ -97,6 +83,25 @@ function PdfReaderSettings({ node, updateConfig }) {
       </div>
     </>
   );
+}
+
+// Google Form Trigger Settings
+function randomSecret(len = 40) {
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let out = "";
+  for (let i = 0; i < len; i++)
+    out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function GoogleFormTriggerSettings({ node, updateConfig }) {
@@ -258,9 +263,11 @@ function skyOnFormSubmit(e) {
   );
 }
 
+// Node settings modal
 export function NodeSettings({ open, node, onClose, setNodes }) {
   if (!open || !node) return null;
 
+  // Function to update node config
   const updateConfig = (patch) => {
     setNodes((nds) =>
       nds.map((n) => {
@@ -280,8 +287,10 @@ export function NodeSettings({ open, node, onClose, setNodes }) {
     );
   };
 
+  // Determine which settings component to render
   const t = node.data.originalType;
 
+  // Render the appropriate settings component based on the node type
   let Body = null;
   switch (t) {
     case "llm.openai":
