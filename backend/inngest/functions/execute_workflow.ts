@@ -10,12 +10,12 @@ export const executeWorkflow = inngest.createFunction(
     const { workflowId, userId } = event.data;
 
     const workflow = await step.run("prepare-workflow", async () => {
-      console.log("✅ Loaded workflow data");
+      console.log("Loaded workflow data");
       return await getWorkflowWithNodesAndConnections(workflowId, userId);
     });
 
     const sortedNodes = await step.run("topological-sort", async () => {
-      console.log("✅ Nodes topologically sorted");
+      console.log("Nodes topo. sorted");
       return topologicalSort(workflow.nodes, workflow.connections);
     });
 

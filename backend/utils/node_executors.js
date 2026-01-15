@@ -31,23 +31,20 @@ export const passthroughExecutor = async (node, context) => {
   return context;
 };
 
-// Manual trigger start node executor
+// Manual trigger executor
 export const startExecutor = async (node, context) => {
-  console.log("▶️  Start node executed:", node.id);
+  console.log("Start node executed");
 
   return {
     ...context,
-    initial: {
+    manualNodeContext: {
       ...(context.initial ?? {}),
-      timestamp: new Date().toISOString(),
-      startNodeId: node.id,
       triggerType: "manual",
     },
   };
 };
 
-// ✅ Google Form trigger executor
-// This DOES NOT call Google. It just places the incoming submission payload into context.google_form.
+// Google Form automated trigger executor
 export const googleFormTriggerExecutor = async (node, context) => {
   console.log("📝 Google Form trigger executed:", node.id);
 
@@ -83,10 +80,11 @@ export const googleFormTriggerExecutor = async (node, context) => {
 
 // PDF node executor
 export const pdfExecutor = async (node, context) => {
+  console.log("PDF node executed");
+
   const cfg = node?.data?.config ?? {};
   const fileUrl = cfg.fileUrl;
-  if (!fileUrl)
-    throw new Error(`PDF node "${node.id}" missing data.config.fileUrl`);
+  if (!fileUrl) throw new Error(`PDF node missing data.config.fileUrl`);
 
   const res = await fetch(fileUrl);
   if (!res.ok)
@@ -104,15 +102,18 @@ export const pdfExecutor = async (node, context) => {
     pages: parsed.numpages,
     textPreview: preview,
     textLength: fullText.length,
-    timestamp: new Date().toISOString(),
   };
 
-  // ✅ DON'T put fullText into context
-  return { ...context, pdf: result, [`${node.id}_pdf`]: result };
+  return {
+    ...context,
+    pdfNodeContext: result,
+  };
 };
 
 // Gemini node executor
 export const geminiExecutor = async (node, context) => {
+  console.log("Gemini node executed");
+
   const cfg = node?.data?.config ?? {};
   const systemPrompt = cfg.systemPrompt ?? "You are a helpful assistant.";
 
@@ -126,7 +127,7 @@ export const geminiExecutor = async (node, context) => {
   const userPrompt = applyTemplate(userPromptTemplate, context);
 
   // If you want Gemini to work with either PDF or Google Form, you can expand this logic.
-  const pdfText = context.pdf?.textPreview || "";
+  const pdfText = context.pdfNodeContext?.textPreview || "";
   const formAnswers = context.google_form?.answers || {};
 
   const extraContext = [
@@ -169,7 +170,6 @@ export const getExecutor = (nodeType) => {
     case "trigger.manual":
       return startExecutor;
 
-    // ✅ Google Form trigger
     case "trigger.googleform":
       return googleFormTriggerExecutor;
 
