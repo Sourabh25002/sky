@@ -38,7 +38,7 @@ const Login = () => {
           setLoading(false);
           setError(ctx.error.message || "Login failed");
         },
-      }
+      },
     );
   };
 
@@ -115,7 +115,6 @@ const Login = () => {
             </p>
           </form>
         </div>
-        <p className="security-badge">Protected by SecureLayer AI</p>
       </div>
     </div>
   );

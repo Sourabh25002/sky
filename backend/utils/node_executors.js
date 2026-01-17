@@ -8,26 +8,16 @@ const safeSlice = (v, n = 200) => {
   return s.length > n ? s.slice(0, n) + "..." : s;
 };
 
-// Read nested values like "google_form.answers.Email"
+// Gets a nested value by path from an object.
 const getByPath = (obj, path) => {
   return String(path)
     .split(".")
     .reduce((acc, k) => (acc == null ? undefined : acc[k]), obj);
 };
 
-// Replaces {{path.to.key}} in text with values from context.
-export const applyTemplate = (template, context) => {
-  if (!template) return "";
-  return String(template).replace(/{{([^}]+)}}/g, (_, rawKey) => {
-    const key = rawKey.trim();
-    const val = getByPath(context, key);
-    return val == null ? "" : String(val);
-  });
-};
-
 // Default passthrough executor
 export const passthroughExecutor = async (node, context) => {
-  console.log(`⏭️  Passthrough: ${node.type}(${String(node.id).slice(0, 8)})`);
+  console.log(` Passthrough: ${node.type}(${String(node.id).slice(0, 8)})`);
   return context;
 };
 
@@ -46,12 +36,10 @@ export const startExecutor = async (node, context) => {
 
 // Google Form automated trigger executor
 export const googleFormTriggerExecutor = async (node, context) => {
-  console.log("📝 Google Form trigger executed:", node.id);
+  console.log(" Google Form trigger executed:", node.id);
 
   const cfg = node?.data?.config ?? {};
 
-  // This payload will come from backend later, via event.data.googleForm (recommended).
-  // Keeping fallback keys so you can test easily.
   const incoming =
     context?.initialData?.googleForm ||
     context?.initialData?.google_form ||
@@ -117,19 +105,18 @@ export const geminiExecutor = async (node, context) => {
   const cfg = node?.data?.config ?? {};
   const systemPrompt = cfg.systemPrompt ?? "You are a helpful assistant.";
 
-  // Support both cfg.prompt and cfg.userPrompt (because your UI had both styles)
-  const userPromptTemplate = cfg.prompt ?? cfg.userPrompt;
-  if (!userPromptTemplate) {
-    throw new Error(`Gemini node "${node.id}" missing data.config.prompt`);
+  const userPrompt = cfg.prompt ?? cfg.userPrompt;
+  if (!userPrompt) {
+    throw new Error(`Gemini node "${node.id}" missing prompt`);
   }
 
-  // Allow templates like {{google_form.answers.Email}}
-  const userPrompt = applyTemplate(userPromptTemplate, context);
-
-  // If you want Gemini to work with either PDF or Google Form, you can expand this logic.
+  // PDF text content
   const pdfText = context.pdfNodeContext?.textPreview || "";
+
+  // Google Form answers
   const formAnswers = context.google_form?.answers || {};
 
+  // Combine extra context
   const extraContext = [
     pdfText ? `--- PDF CONTENT ---\n${pdfText}` : "",
     Object.keys(formAnswers).length
@@ -154,10 +141,57 @@ export const geminiExecutor = async (node, context) => {
 
   return {
     ...context,
-    [`${node.id}_ai_result`]: text,
     ai_response: {
       text,
       model: "gemini-2.5-flash",
+      prompt: userPrompt,
+      system: systemPrompt,
+    },
+  };
+};
+
+// Telegram Node Executor
+export const telegramExecutor = async (node, context) => {
+  console.log("Telegram node executed");
+
+  const cfg = node?.data?.config ?? {};
+
+  const botToken = cfg.botToken;
+  const chatId = cfg.chatId;
+
+  if (!botToken || !chatId) {
+    throw new Error(`Telegram node missing botToken or chatId`);
+  }
+
+  const lastAiText = context.ai_response?.text;
+
+  const messageToSend = cfg.message || lastAiText || "No content to send.";
+
+  // 3. Send via Telegram API
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: messageToSend,
+      parse_mode: "Markdown",
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Telegram API Error: ${res.status} ${err}`);
+  }
+
+  const result = await res.json();
+
+  return {
+    ...context,
+    telegram_response: {
+      sent: true,
+      messageId: result.result?.message_id,
       timestamp: new Date().toISOString(),
     },
   };
@@ -178,6 +212,9 @@ export const getExecutor = (nodeType) => {
 
     case "llm.gemini":
       return geminiExecutor;
+
+    case "action.telegram":
+      return telegramExecutor;
 
     default:
       return passthroughExecutor;

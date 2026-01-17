@@ -50,7 +50,7 @@ const Signup = () => {
           setLoading(false);
           setError(ctx.error.message);
         },
-      }
+      },
     );
   };
 
@@ -154,7 +154,6 @@ const Signup = () => {
             </p>
           </form>
         </div>
-        <p className="security-badge">Secured by CloudArmor v2</p>
       </div>
     </div>
   );
