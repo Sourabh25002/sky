@@ -42,6 +42,16 @@ export const APPS = [
     label: "Discord",
     icon: "/discord.svg",
   },
+  {
+    type: "action.telegram",
+    label: "Telegram",
+    icon: "/telegram.svg",
+    defaults: {
+      botToken: "",
+      chatId: "",
+      message: "",
+    },
+  },
 ];
 
 export const HTTP = [

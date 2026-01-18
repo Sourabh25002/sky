@@ -1,6 +1,7 @@
 import "./Sidebar.css";
 import { useState, memo } from "react";
 import { NODE_TEMPLATES } from "../../utils/nodeCatalog";
+import { PanelLeftClose, PanelLeftOpen, GripVertical } from "lucide-react";
 
 // Drag start handler to set data for the dragged node
 const onDragStart = (event, nodeType) => {
@@ -10,12 +11,12 @@ const onDragStart = (event, nodeType) => {
 
 // Sidebar component for the editor
 const EditorSidebar = memo(function EditorSidebar() {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside className={`editorSidebar ${collapsed ? "isCollapsed" : ""}`}>
       <div className="editorSidebarTop">
-        <div className="editorSidebarTitle">Nodes</div>
+        <div className="editorSidebarTitle">Toolbox</div>
 
         <button
           type="button"
@@ -25,27 +26,9 @@ const EditorSidebar = memo(function EditorSidebar() {
           title={collapsed ? "Expand" : "Collapse"}
         >
           {collapsed ? (
-            <svg width="10" height="10" viewBox="0 0 24 24">
-              <path
-                d="M5 12h14M12 5l7 7-7 7"
-                stroke="currentColor"
-                fill="none"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <PanelLeftOpen size={16} />
           ) : (
-            <svg width="10" height="10" viewBox="0 0 24 24">
-              <path
-                d="M19 12H5M12 19l-7-7 7-7"
-                stroke="currentColor"
-                fill="none"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <PanelLeftClose size={16} />
           )}
         </button>
       </div>
@@ -59,6 +42,11 @@ const EditorSidebar = memo(function EditorSidebar() {
             onDragStart={(e) => onDragStart(e, n.type)}
             title={n.label}
           >
+            {/* Grip icon for visual cue (hidden when collapsed) */}
+            <div className="drag-handle">
+              <GripVertical size={14} />
+            </div>
+
             <img className="editorSidebarIcon" src={n.icon} alt={n.label} />
             <span className="editorSidebarLabel">{n.label}</span>
           </div>

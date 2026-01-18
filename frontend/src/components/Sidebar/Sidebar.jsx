@@ -3,27 +3,31 @@ import "./Sidebar.css";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { authClient } from "../../utils/auth";
+import {
+  Workflow,
+  Key,
+  Activity,
+  Zap,
+  CreditCard,
+  User,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 
 const Sidebar = () => {
   const { data: session, isPending } = authClient.useSession();
   const [collapsed, setCollapsed] = useState(true);
-
   const userName = session?.user?.name || "Account";
 
   const toggleSidebar = () => setCollapsed((prev) => !prev);
 
   const handleUpgrade = async (e) => {
-    e.preventDefault(); // prevent any navigation
+    e.preventDefault();
     if (!session?.user) {
-      // optional: redirect to login or show message
       alert("Please sign in before upgrading.");
       return;
     }
-
-    await authClient.checkout({
-      slug: "pro", // must match slug in your backend checkout config
-    });
-    // This will redirect to the Polar checkout page
+    await authClient.checkout({ slug: "pro" });
   };
 
   const handleBillingPortal = async (e) => {
@@ -33,6 +37,8 @@ const Sidebar = () => {
 
   return (
     <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
+      {/* Glow div removed for matte look */}
+
       <div className="sidebar-top">
         <button
           type="button"
@@ -44,33 +50,50 @@ const Sidebar = () => {
             <img src="/logo.svg" alt="Sky logo" className="logo-img" />
           </div>
           <span className="logo-text">sky</span>
+
+          <div className="collapse-icon">
+            {collapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <PanelLeftClose size={16} />
+            )}
+          </div>
         </button>
 
         <nav className="sidebar-nav">
-          <SidebarItem icon="⚙️" label="Workflow" to="/dashboard/workflow" />
           <SidebarItem
-            icon="🔑"
+            icon={<Workflow size={18} />}
+            label="Workflow"
+            to="/dashboard/workflow"
+          />
+          <SidebarItem
+            icon={<Key size={18} />}
             label="Credentials"
             to="/dashboard/credential"
           />
-          <SidebarItem icon="📊" label="Executions" to="/dashboard/execution" />
+          <SidebarItem
+            icon={<Activity size={18} />}
+            label="Executions"
+            to="/dashboard/execution"
+          />
         </nav>
       </div>
 
       <div className="sidebar-footer">
         <SidebarItem
-          icon="🚀"
+          icon={<Zap size={18} />}
           label="Upgrade to Pro"
           onClick={handleUpgrade}
-          // to="/dashboard/upgrade"
+          className="upgrade-item"
         />
         <SidebarItem
-          icon="💳"
+          icon={<CreditCard size={18} />}
           label="Billing Portal"
           onClick={handleBillingPortal}
         />
+        <div className="separator"></div>
         <SidebarItem
-          icon="👤"
+          icon={<User size={18} />}
           label={isPending ? "Loading..." : userName}
           to="/dashboard/profile"
         />
@@ -79,11 +102,11 @@ const Sidebar = () => {
   );
 };
 
-const SidebarItem = ({ icon, label, to, onClick }) => {
+const SidebarItem = ({ icon, label, to, onClick, className = "" }) => {
   const handleClick = (e) => {
     if (onClick) {
-      e.preventDefault(); // stop NavLink navigation
-      onClick(e); // run your handler (checkout / portal)
+      e.preventDefault();
+      onClick(e);
     }
   };
 
@@ -92,11 +115,12 @@ const SidebarItem = ({ icon, label, to, onClick }) => {
       to={to || "#"}
       onClick={handleClick}
       className={({ isActive }) =>
-        "sidebar-item" + (isActive ? " sidebar-item-active" : "")
+        `sidebar-item ${isActive ? "sidebar-item-active" : ""} ${className}`
       }
     >
       <span className="sidebar-icon">{icon}</span>
       <span className="sidebar-label">{label}</span>
+      {/* Removed active-indicator div */}
     </NavLink>
   );
 };

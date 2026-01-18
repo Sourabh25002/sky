@@ -1,93 +1,152 @@
+/* Editor Sidebar - Matte Dark Theme */
 .editorSidebar {
-  background: #252526;
-  border-right: 1px solid #3e3e42;
-  padding: 12px;
-  color: #d4d4d4;
+  background: #09090b; /* Matte Black */
+  border-right: 1px solid #27272a;
+  padding: 1rem;
+  color: #e4e4e7;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   width: 260px;
-  transition: width 0.18s ease, padding 0.18s ease;
+  transition:
+    width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    padding 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Collapsed State */
 .editorSidebar.isCollapsed {
   width: 72px;
-  padding: 12px 10px;
+  padding: 1rem 0.75rem;
 }
 
+/* --- Header Section --- */
 .editorSidebarTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #27272a;
+  min-height: 32px;
 }
 
 .editorSidebarTitle {
-  font-size: 12px;
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #9da0a6;
+  color: #a1a1aa; /* Muted text */
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  opacity: 1;
+  transition: opacity 0.2s;
 }
 
 .editorSidebarToggle {
-  border: 1px solid #3e3e42;
-  background: #2d2d30;
-  color: #d4d4d4;
-  border-radius: 6px;
-  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: #a1a1aa;
+  padding: 4px;
+  border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
 .editorSidebarToggle:hover {
-  border-color: #007acc;
-  color: #ffffff;
+  background: #27272a;
+  color: #e4e4e7;
 }
 
+/* --- Node List --- */
 .editorSidebarList {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .editorSidebarItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 10px;
-  border-radius: 6px;
-  background: #2d2d30;
-  border: 1px solid #3e3e42;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #18181b; /* Slightly lighter than bg */
+  border: 1px solid #27272a;
   cursor: grab;
   user-select: none;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .editorSidebarItem:hover {
-  border-color: #007acc;
+  background: #27272a;
+  border-color: #3f3f46;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.editorSidebarItem:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+}
+
+/* Icon Images */
 .editorSidebarIcon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: grayscale(0.2); /* Subtle blend */
+  transition: filter 0.2s;
 }
 
+.editorSidebarItem:hover .editorSidebarIcon {
+  filter: grayscale(0);
+}
+
+/* Text Label */
 .editorSidebarLabel {
-  font-size: 13px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e4e4e7;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-grow: 1;
 }
 
-/* hide text when collapsed */
+/* Drag Handle (Grip Dots) */
+.drag-handle {
+  color: #52525b;
+  display: flex;
+  align-items: center;
+}
+
+/* --- Collapsed Behavior --- */
+
+/* Hide text and grips when collapsed */
 .editorSidebar.isCollapsed .editorSidebarLabel,
-.editorSidebar.isCollapsed .editorSidebarTitle {
+.editorSidebar.isCollapsed .editorSidebarTitle,
+.editorSidebar.isCollapsed .drag-handle {
   display: none;
 }
 
-/* center icons when collapsed */
+/* Center icons when collapsed */
 .editorSidebar.isCollapsed .editorSidebarItem {
   justify-content: center;
-  padding: 10px 0;
+  padding: 0.75rem 0;
+  gap: 0;
+}
+
+.editorSidebar.isCollapsed .editorSidebarTop {
+  justify-content: center;
+}
+
+.editorSidebar.isCollapsed .editorSidebarToggle {
+  width: 100%;
 }

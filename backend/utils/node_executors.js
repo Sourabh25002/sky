@@ -176,7 +176,7 @@ export const telegramExecutor = async (node, context) => {
     body: JSON.stringify({
       chat_id: chatId,
       text: messageToSend,
-      parse_mode: "Markdown",
+      // parse_mode: "Markdown",
     }),
   });
 

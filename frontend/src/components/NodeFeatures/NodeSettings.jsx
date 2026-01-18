@@ -85,6 +85,59 @@ function PdfReaderSettings({ node, updateConfig }) {
   );
 }
 
+// Telegram Node Settings
+function TelegramSettings({ node, updateConfig }) {
+  const cfg = node.data.config ?? {};
+
+  return (
+    <>
+      <div className="sectionCard">
+        <div className="sectionTitle">Authentication</div>
+
+        <label>Bot Token</label>
+        <input
+          type="password"
+          placeholder="123456789:ABCdefGHIjkl..."
+          value={cfg.botToken ?? ""}
+          onChange={(e) => updateConfig({ botToken: e.target.value })}
+        />
+        <div className="hint" style={{ marginBottom: 15 }}>
+          Talk to <b>@BotFather</b> on Telegram and send <code>/newbot</code> to
+          get this.
+        </div>
+
+        <label>Chat ID</label>
+        <input
+          type="text"
+          placeholder="987654321"
+          value={cfg.chatId ?? ""}
+          onChange={(e) => updateConfig({ chatId: e.target.value })}
+        />
+        <div className="hint">
+          Talk to <b>@userinfobot</b> to get your personal ID, or add the bot to
+          a group and get the group ID.
+        </div>
+      </div>
+
+      <div className="sectionCard" style={{ marginTop: 20 }}>
+        <div className="sectionTitle">Message</div>
+
+        <label>Custom Text (Optional)</label>
+        <textarea
+          rows={4}
+          placeholder="Leave blank to automatically send the result from the AI node."
+          value={cfg.message ?? ""}
+          onChange={(e) => updateConfig({ message: e.target.value })}
+        />
+        <div className="hint">
+          If you leave this empty, the node will send{" "}
+          <code>context.ai_response.text</code> by default.
+        </div>
+      </div>
+    </>
+  );
+}
+
 // Google Form Trigger Settings
 function randomSecret(len = 40) {
   const chars =
@@ -283,7 +336,7 @@ export function NodeSettings({ open, node, onClose, setNodes }) {
             },
           },
         };
-      })
+      }),
     );
   };
 
@@ -310,6 +363,10 @@ export function NodeSettings({ open, node, onClose, setNodes }) {
         <GoogleFormTriggerSettings node={node} updateConfig={updateConfig} />
       );
       break;
+    case "action.telegram":
+      Body = <TelegramSettings node={node} updateConfig={updateConfig} />;
+      break;
+
     default:
       Body = <div className="helperText">No settings UI for: {t}</div>;
   }
