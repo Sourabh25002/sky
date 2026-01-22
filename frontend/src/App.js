@@ -4,6 +4,7 @@ import { ReactFlowProvider } from "@xyflow/react";
 import DashboardLayout from "./pages/DashboardPage/DashboardPage";
 import Login from "./pages/AuthenticationPage/LoginPage";
 import Signup from "./pages/AuthenticationPage/SignupPage";
+import LandingPage from "./pages/LandingPage/LandingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import WorkflowPage from "./pages/WorkflowPage/WorkflowPage";
 import CredentialPage from "./pages/CredentialsPage/CredentialPage";
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/dashboard",
+    element: <LandingPage />,
   },
 ]);
 
