@@ -1,134 +1,117 @@
-import pdfParse from "@cedrugs/pdf-parse";
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 
-// Makes a short text for logs.
-const safeSlice = (v, n = 200) => {
-  const s = typeof v === "string" ? v : JSON.stringify(v);
-  return s.length > n ? s.slice(0, n) + "..." : s;
+// Extracts text from various input formats
+const findInputText = (input) => {
+  if (!input) return "";
+  if (typeof input === "string") return input;
+
+  if (Array.isArray(input)) {
+    return input.map((i) => findInputText(i)).join("\n---\n");
+  }
+
+  if (input.data) {
+    return findInputText(input.data);
+  }
+
+  if (input.text) return input.text;
+  if (input.message) return input.message;
+  if (input.answers) return JSON.stringify(input.answers, null, 2);
+  if (input.content) return input.content;
+
+  return JSON.stringify(input);
 };
 
-// Gets a nested value by path from an object.
-const getByPath = (obj, path) => {
-  return String(path)
-    .split(".")
-    .reduce((acc, k) => (acc == null ? undefined : acc[k]), obj);
+// Retrieves parent node from context
+const getParentData = (context, node) => {
+  const parentIds = node.parents || [];
+  if (parentIds.length === 0) return null;
+
+  const parentId = parentIds[0];
+  return context[parentId]?.data;
 };
 
 // Default passthrough executor
 export const passthroughExecutor = async (node, context) => {
-  console.log(` Passthrough: ${node.type}(${String(node.id).slice(0, 8)})`);
-  return context;
+  // console.log("Passthrough Node Executed");
+  return {
+    ...context,
+    [node.id]: {
+      data: { status: "passed" },
+    },
+  };
 };
 
 // Manual trigger executor
 export const startExecutor = async (node, context) => {
-  console.log("Start node executed");
+  // console.log("Start Node Executed");
 
   return {
     ...context,
-    manualNodeContext: {
-      ...(context.initial ?? {}),
-      triggerType: "manual",
+    [node.id]: {
+      data: {
+        triggerType: "manual",
+      },
     },
   };
 };
 
 // Google Form automated trigger executor
 export const googleFormTriggerExecutor = async (node, context) => {
-  console.log(" Google Form trigger executed:", node.id);
+  // console.log("Google Form trigger executed:", node.id);
 
   const cfg = node?.data?.config ?? {};
 
-  const incoming =
-    context?.initialData?.googleForm ||
-    context?.initialData?.google_form ||
-    context?.initialData?.payload ||
-    null;
+  const payload =
+    context?.initialData?.googleForm || context?.trigger?.payload || {};
 
   const normalized = {
-    formId: incoming?.formId ?? cfg.formId ?? "",
-    timestamp: incoming?.timestamp ?? new Date().toISOString(),
-    answers: incoming?.answers ?? {},
-    raw: incoming ?? null,
+    formId: payload?.formId ?? cfg.formId ?? "unknown",
+    answers: payload?.answers ?? {},
+    respondentEmail: payload?.email ?? "anonymous",
+    timestamp: payload?.timestamp ?? new Date().toISOString(),
   };
 
   return {
     ...context,
-    initial: {
-      ...(context.initial ?? {}),
-      timestamp: context?.initial?.timestamp ?? new Date().toISOString(),
-      startNodeId: context?.initial?.startNodeId ?? node.id,
-      triggerType: "google_form",
+    [node.id]: {
+      data: normalized,
     },
-    google_form: normalized,
-    [`${node.id}_google_form`]: normalized,
   };
 };
 
 // PDF node executor
 export const pdfExecutor = async (node, context) => {
-  console.log("PDF node executed");
+  // console.log("PDF Node Executed");
 
   const cfg = node?.data?.config ?? {};
   const fileUrl = cfg.fileUrl;
-  if (!fileUrl) throw new Error(`PDF node missing data.config.fileUrl`);
-
-  const res = await fetch(fileUrl);
-  if (!res.ok)
-    throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
-
-  const arr = await res.arrayBuffer();
-  const pdfBuffer = Buffer.from(arr);
-  const parsed = await pdfParse(pdfBuffer);
-
-  const fullText = parsed.text || "";
-  const preview = safeSlice(fullText, 4000);
-
-  const result = {
-    fileUrl,
-    pages: parsed.numpages,
-    textPreview: preview,
-    textLength: fullText.length,
-  };
 
   return {
     ...context,
-    pdfNodeContext: result,
+    [node.id]: {
+      data: {
+        fileUrl: fileUrl,
+      },
+    },
   };
 };
 
 // Gemini node executor
 export const geminiExecutor = async (node, context) => {
-  console.log("Gemini node executed");
-
   const cfg = node?.data?.config ?? {};
   const systemPrompt = cfg.systemPrompt ?? "You are a helpful assistant.";
+  const userPrompt = cfg.prompt || cfg.userPrompt;
 
-  const userPrompt = cfg.prompt ?? cfg.userPrompt;
-  if (!userPrompt) {
-    throw new Error(`Gemini node "${node.id}" missing prompt`);
-  }
+  if (!userPrompt) throw new Error("Gemini Node: Missing prompt");
 
-  // PDF text content
-  const pdfText = context.pdfNodeContext?.textPreview || "";
+  // 1. Get Parent Data
+  const parentData = getParentData(context, node);
 
-  // Google Form answers
-  const formAnswers = context.google_form?.answers || {};
+  // 2. Extract Text from Parent
+  const contextText = findInputText(parentData);
 
-  // Combine extra context
-  const extraContext = [
-    pdfText ? `--- PDF CONTENT ---\n${pdfText}` : "",
-    Object.keys(formAnswers).length
-      ? `--- GOOGLE FORM ANSWERS ---\n${JSON.stringify(formAnswers, null, 2)}`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
-
-  const fullPrompt = extraContext
-    ? `${userPrompt}\n\n${extraContext}`
-    : userPrompt;
+  const fullPrompt = `${userPrompt}\n\n--- DATA TO PROCESS ---\n${contextText}`;
 
   const model = google("gemini-2.5-flash");
   const { text } = await generateText({
@@ -136,47 +119,49 @@ export const geminiExecutor = async (node, context) => {
     prompt: fullPrompt,
     system: systemPrompt,
     maxTokens: 1000,
-    temperature: 0.7,
   });
 
   return {
     ...context,
-    ai_response: {
-      text,
-      model: "gemini-2.5-flash",
-      prompt: userPrompt,
-      system: systemPrompt,
+    [node.id]: {
+      data: {
+        text: text,
+        model: "gemini-2.5-flash",
+      },
     },
   };
 };
 
 // Telegram Node Executor
 export const telegramExecutor = async (node, context) => {
-  console.log("Telegram node executed");
+  // console.log(JSON.stringify(node, null, 2));
 
   const cfg = node?.data?.config ?? {};
-
   const botToken = cfg.botToken;
   const chatId = cfg.chatId;
 
-  if (!botToken || !chatId) {
-    throw new Error(`Telegram node missing botToken or chatId`);
+  if (!botToken || !chatId)
+    throw new Error("Telegram Node: Missing credentials");
+
+  let messageToSend = cfg.message;
+
+  if (!messageToSend) {
+    const parentData = getParentData(context, node);
+
+    if (parentData) {
+      messageToSend = findInputText(parentData);
+    }
   }
 
-  const lastAiText = context.ai_response?.text;
+  const finalMessage = messageToSend || "No content received from parent.";
 
-  const messageToSend = cfg.message || lastAiText || "No content to send.";
-
-  // 3. Send via Telegram API
   const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       chat_id: chatId,
-      text: messageToSend,
-      // parse_mode: "Markdown",
+      text: finalMessage,
     }),
   });
 
@@ -189,10 +174,10 @@ export const telegramExecutor = async (node, context) => {
 
   return {
     ...context,
-    telegram_response: {
-      sent: true,
-      messageId: result.result?.message_id,
-      timestamp: new Date().toISOString(),
+    [node.id]: {
+      data: {
+        content: finalMessage,
+      },
     },
   };
 };
